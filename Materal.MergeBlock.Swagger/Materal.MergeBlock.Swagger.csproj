@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../../MergeBlockLibrary.props" />
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<!-- 解决.Net6下生成失败的Bug -->
+		<OpenApiGenerateDocuments>false</OpenApiGenerateDocuments>
+		<Title>Materal MergeBlock包</Title>
+		<Description>Materal MergeBlock Swagger模块</Description>
+	</PropertyGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Materal.MergeBlock.Swagger.Abstractions\Materal.MergeBlock.Swagger.Abstractions.csproj" />
+		<ProjectReference Include="..\Materal.MergeBlock.Web\Materal.MergeBlock.Web.csproj" />
+	</ItemGroup>
+</Project>

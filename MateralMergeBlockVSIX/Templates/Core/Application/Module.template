@@ -1,0 +1,22 @@
+﻿using Materal.Extensions;
+using Materal.MergeBlock.Abstractions;
+using Microsoft.Extensions.Configuration;
+
+namespace ${ProjectName}.Core.Application
+{
+    /// <summary>
+    /// ${ProjectName}模块
+    /// </summary>
+    public abstract class ${ProjectName}Module(string moduleName) : MergeBlockModule(moduleName)
+    {
+        /// <inheritdoc/>
+        public override void OnPreConfigureServices(ServiceConfigurationContext context)
+        {
+            if (context.Configuration is not IConfigurationBuilder configurationBuilder) return;
+            Type moduleType = GetType();
+            string configFilePath = moduleType.Assembly.GetDirectoryPath();
+            configFilePath = Path.Combine(configFilePath, $"{moduleType.Namespace}.json");
+            configurationBuilder.AddJsonFile(configFilePath, optional: true, reloadOnChange: true);
+        }
+    }
+}

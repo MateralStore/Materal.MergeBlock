@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+		<PackageReference Include="Materal.MergeBlock.Application.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\${ProjectName}.Core.Abstractions\${ProjectName}.Core.Abstractions.csproj" />
+	</ItemGroup>
+</Project>

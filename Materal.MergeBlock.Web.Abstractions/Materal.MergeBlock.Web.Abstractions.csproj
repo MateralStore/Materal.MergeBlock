@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../../Packable.props" />
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<Title>Materal MergeBlock包</Title>
+		<Description>Materal MergeBlock Web模块</Description>
+	</PropertyGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Materal.MergeBlock.Application.Abstractions\Materal.MergeBlock.Application.Abstractions.csproj" />
+		<ProjectReference Include="..\Materal.MergeBlock.GeneratorCode\Materal.MergeBlock.GeneratorCode.csproj" />
+	</ItemGroup>
+</Project>

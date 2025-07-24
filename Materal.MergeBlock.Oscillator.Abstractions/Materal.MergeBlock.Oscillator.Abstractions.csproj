@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../../Packable.props" />
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<Title>Materal MergeBlock包</Title>
+		<Description>Materal MergeBlock调度器模块</Description>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\Materal.Oscillator\Materal.Oscillator.Abstractions\Materal.Oscillator.Abstractions.csproj" />
+	</ItemGroup>
+</Project>
