@@ -1,5 +1,4 @@
-﻿global using AutoMapper;
-global using Materal.Extensions;
+﻿global using Materal.Extensions;
 global using Materal.MergeBlock.Abstractions;
 global using Materal.MergeBlock.Abstractions.Models;
 global using Materal.MergeBlock.Abstractions.Services;
@@ -7,6 +6,7 @@ global using Materal.MergeBlock.Domain.Abstractions;
 global using Materal.MergeBlock.Repository.Abstractions;
 global using Materal.TTA.Common;
 global using Materal.TTA.EFRepository;
+global using Materal.Utils.AutoMapper;
 global using Materal.Utils.Enums;
 global using Materal.Utils.Model;
 global using System.Collections;

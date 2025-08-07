@@ -6,9 +6,7 @@
 		<Description>Materal MergeBlock应用程序抽象包</Description>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="AutoMapper" />
-	</ItemGroup>
-	<ItemGroup>
+	  <ProjectReference Include="..\..\Materal.Utils\Materal.Utils.AutoMapper\Materal.Utils.AutoMapper.csproj" />
 	  <ProjectReference Include="..\Materal.MergeBlock.Abstractions\Materal.MergeBlock.Abstractions.csproj" />
 	  <ProjectReference Include="..\Materal.MergeBlock.Repository.Abstractions\Materal.MergeBlock.Repository.Abstractions.csproj" />
 	</ItemGroup>

@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.AutoMapperProfile;
+﻿using Materal.Utils.AutoMapper.Extensions;
 using Materal.Utils.Extensions;
 using System.Runtime.Loader;
 
@@ -65,10 +65,9 @@ namespace Materal.MergeBlock.Extensions
             services.AddSingleton(mergeBlockContext);
             services.AddSingleton<AdvancedContext>();
             ConfigModules(services);
-            List<Assembly> autoMapperAssemblies = [typeof(MergeBlockDefaultModelProfile).Assembly, .. mergeBlockContext.MergeBlockAssemblies];
+            Assembly[] autoMapperAssemblies = [.. mergeBlockContext.MergeBlockAssemblies];
             services.AddAutoMapper(config =>
             {
-                config.AllowNullCollections = true;
                 config.AddMaps(autoMapperAssemblies);
             });
             return services;

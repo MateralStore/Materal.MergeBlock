@@ -75,7 +75,6 @@
     <Compile Include="ToolWindows\ViewModels\MergeBlockManagerWindowViewModel.cs" />
     <Compile Include="ToolWindows\ViewModels\ModuleViewModel.cs" />
     <Compile Include="ToolWindows\ViewModels\SolutionNotOpenedViewModel.cs" />
-    <Compile Include="ToolWindows\ViewModels\SolutionOpenedViewModel.AutoMapperProfile.cs" />
     <Compile Include="ToolWindows\ViewModels\SolutionOpenedViewModel.Controller.cs" />
     <Compile Include="ToolWindows\ViewModels\SolutionOpenedViewModel.ControllerAccessors.cs" />
     <Compile Include="ToolWindows\ViewModels\SolutionOpenedViewModel.ControllerEnum.cs" />

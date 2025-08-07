@@ -2,6 +2,7 @@
 global using Materal.Extensions;
 global using Materal.Extensions.DependencyInjection;
 global using Materal.MergeBlock.Abstractions;
+global using Materal.Utils.AutoMapper;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.DependencyInjection.Extensions;

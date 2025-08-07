@@ -9,11 +9,11 @@
 		<None Include="build\**" Pack="True" PackagePath="build\" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="AutoMapper" />
 	  <PackageReference Include="Microsoft.Extensions.Hosting" />
 	  <PackageReference Include="Microsoft.Extensions.Localization" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Materal.Utils\Materal.Utils.AutoMapper\Materal.Utils.AutoMapper.csproj" />
 	  <ProjectReference Include="..\Materal.MergeBlock.Abstractions\Materal.MergeBlock.Abstractions.csproj" />
 	</ItemGroup>
 </Project>
