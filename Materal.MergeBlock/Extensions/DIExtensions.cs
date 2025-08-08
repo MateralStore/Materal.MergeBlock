@@ -152,6 +152,7 @@ namespace Materal.MergeBlock.Extensions
             MateralServices.ServiceProvider = serviceProvider;
             AdvancedContext advancedContext = serviceProvider.GetRequiredService<AdvancedContext>();
             advancedContext.App = app;
+            serviceProvider.UseAutoMapper();
             ApplicationInitializationContext context = new(serviceProvider);
             InitMergeBlock(context);
             return serviceProvider;
