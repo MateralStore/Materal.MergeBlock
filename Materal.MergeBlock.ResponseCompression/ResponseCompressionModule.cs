@@ -13,7 +13,10 @@ namespace Materal.MergeBlock.ResponseCompression
         /// 配置服务
         /// </summary>
         /// <param name="context"></param>
-        public override void OnConfigureServices(ServiceConfigurationContext context) => context.Services.AddResponseCompression();
+        public override void OnConfigureServices(ServiceConfigurationContext context) => context.Services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+        });
         /// <summary>
         /// 应用程序初始化
         /// </summary>
