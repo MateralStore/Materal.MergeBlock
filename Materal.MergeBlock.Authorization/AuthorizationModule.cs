@@ -1,4 +1,5 @@
 ﻿using Materal.MergeBlock.Authorization.Abstractions;
+using Materal.MergeBlock.Web;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -10,6 +11,7 @@ namespace Materal.MergeBlock.Authorization
     /// <summary>
     /// 鉴权模块
     /// </summary>
+    [DependsOn(typeof(WebModule))]
     public class AuthorizationModule() : MergeBlockModule("鉴权模块")
     {
         /// <summary>

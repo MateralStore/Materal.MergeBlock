@@ -9,7 +9,7 @@ using System.Reflection;
 namespace Materal.MergeBlock.Web
 {
     /// <summary>
-    /// Swagger模块
+    /// Web模块
     /// </summary>
     public class WebModule() : MergeBlockModule("Web模块")
     {
