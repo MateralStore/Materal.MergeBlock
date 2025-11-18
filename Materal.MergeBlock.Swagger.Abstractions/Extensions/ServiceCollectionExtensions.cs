@@ -1,6 +1,5 @@
-﻿using Materal.MergeBlock.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi;
 
 namespace Materal.MergeBlock.Swagger.Abstractions.Extensions
 {

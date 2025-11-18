@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Materal.MergeBlock.Swagger
@@ -85,16 +85,17 @@ namespace Materal.MergeBlock.Swagger
                 Description = "在请求头部加入JWT授权。例子:Authorization:Bearer {token}",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = JwtBearerDefaults.AuthenticationScheme
-                }
+                Type = SecuritySchemeType.ApiKey
             };
             config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerScheme);
-            OpenApiSecurityRequirement openApiSecurityRequirement = new() { { bearerScheme, new List<string>() } };
-            config.AddSecurityRequirement(openApiSecurityRequirement);
+            
+            OpenApiSecuritySchemeReference schemeReference = new(JwtBearerDefaults.AuthenticationScheme, null, null);
+            
+            OpenApiSecurityRequirement openApiSecurityRequirement = new() 
+            { 
+                { schemeReference, new List<string>() } 
+            };
+            config.AddSecurityRequirement((doc) => openApiSecurityRequirement);
         }
         /// <summary>
         /// 获取XML文档
