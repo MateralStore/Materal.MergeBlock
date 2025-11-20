@@ -19,16 +19,15 @@ namespace MateralMergeBlockVSIX.ToolWindows.ViewModels
 {
     public partial class SolutionOpenedViewModel : ObservableObject
     {
-        private string _solutionName = "不是MergeBlock项目";
         /// <summary>
         /// 解决方案名称
         /// </summary>
-        public string SolutionName { get => _solutionName; set { _solutionName = value; NotifyPropertyChanged(); } }
-        private Visibility _visibility = Visibility.Collapsed;
+        public string SolutionName { get; set { field = value; NotifyPropertyChanged(); } } = "不是MergeBlock项目";
+
         /// <summary>
         /// 显示状态
         /// </summary>
-        public Visibility Visibility { get => _visibility; set { _visibility = value; NotifyPropertyChanged(); } }
+        public Visibility Visibility { get; set { field = value; NotifyPropertyChanged(); } } = Visibility.Collapsed;
         /// <summary>
         /// 模块
         /// </summary>

@@ -6,11 +6,10 @@ namespace MateralMergeBlockVSIX.ToolWindows.ViewModels
 {
     public partial class MergeBlockManagerWindowViewModel : ObservableObject
     {
-        private UserControl? _currentControl = new SolutionNotOpenedControl();
         /// <summary>
         /// 当前控件
         /// </summary>
-        public UserControl? CurrentControl { get => _currentControl; set { _currentControl = value; NotifyPropertyChanged(); } }
+        public UserControl? CurrentControl { get; set { field = value; NotifyPropertyChanged(); } } = new SolutionNotOpenedControl();
         /// <summary>
         /// 初始化
         /// </summary>

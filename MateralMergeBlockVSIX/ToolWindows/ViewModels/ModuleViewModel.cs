@@ -41,11 +41,12 @@ namespace MateralMergeBlockVSIX.ToolWindows.ViewModels
                 NotifyPropertyChanged();
             }
         }
-        private bool _canOpen = false;
+
         /// <summary>
         /// 能否打开
         /// </summary>
-        public bool CanOpen { get => _canOpen; set { _canOpen = value; NotifyPropertyChanged(); } }
+        public bool CanOpen { get; set { field = value; NotifyPropertyChanged(); } } = false;
+
         /// <summary>
         /// 打开Sln文件
         /// </summary>
