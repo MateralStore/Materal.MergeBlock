@@ -27,22 +27,22 @@ namespace Materal.MergeBlock.Abstractions
         /// <summary>
         /// 启动模块类型
         /// </summary>
-        [JsonIgnore]
+        [JsonIgnore, System.Text.Json.Serialization.JsonIgnore]
         Type? StartModuleType { get; }
         /// <summary>
         /// 递归扫描子目录
         /// </summary>
-        [JsonIgnore]
+        [JsonIgnore, System.Text.Json.Serialization.JsonIgnore]
         int RecursivelyScan { get; set; }
         /// <summary>
         /// 程序集列表
         /// </summary>
-        [JsonIgnore]
+        [JsonIgnore, System.Text.Json.Serialization.JsonIgnore]
         List<Assembly> Assemblies { get; }
         /// <summary>
         /// 模块类型列表
         /// </summary>
-        [JsonIgnore]
+        [JsonIgnore, System.Text.Json.Serialization.JsonIgnore]
         Dictionary<Type, ModuleDescriptor> Modules { get; }
         /// <summary>
         /// 依赖的插件集合
@@ -55,7 +55,7 @@ namespace Materal.MergeBlock.Abstractions
         /// <summary>
         /// 加载上下文
         /// </summary>
-        [JsonIgnore]
+        [JsonIgnore, System.Text.Json.Serialization.JsonIgnore]
         AssemblyLoadContext? LoadContext { get; }
         /// <summary>
         /// 确保插件
