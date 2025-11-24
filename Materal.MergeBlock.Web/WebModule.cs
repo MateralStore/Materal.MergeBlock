@@ -25,7 +25,7 @@ namespace Materal.MergeBlock.Web
             if (section is not null)
             {
                 context.Services.Configure<WebOptions>(section);
-                webOptions = section.GetConfigItem<WebOptions>();
+                webOptions = section.Get<WebOptions>();
             }
             IMvcBuilder mvcBuilder = context.Services.AddControllers(options =>
             {
@@ -60,12 +60,12 @@ namespace Materal.MergeBlock.Web
             ListeningUris urlsList = [];
             if (context.Configuration is not null)
             {
-                string? urlsValue = context.Configuration.GetConfigItemToString("URLS");
+                string? urlsValue = context.Configuration.Get<string>("URLS");
                 if (!string.IsNullOrWhiteSpace(urlsValue))
                 {
                     urlsList.AddRange(urlsValue.Split(";").Select(m => new Uri(m)));
                 }
-                urlsValue = context.Configuration.GetConfigItemToString("ASPNETCORE_URLS");
+                urlsValue = context.Configuration.Get<string>("ASPNETCORE_URLS");
                 if (!string.IsNullOrWhiteSpace(urlsValue))
                 {
                     foreach (Uri uri in urlsValue.Split(";").Select(m => new Uri(m)))

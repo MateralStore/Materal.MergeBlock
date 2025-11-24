@@ -88,12 +88,12 @@ namespace Materal.MergeBlock.Swagger
                 Type = SecuritySchemeType.ApiKey
             };
             config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerScheme);
-            
+
             OpenApiSecuritySchemeReference schemeReference = new(JwtBearerDefaults.AuthenticationScheme, null, null);
-            
-            OpenApiSecurityRequirement openApiSecurityRequirement = new() 
-            { 
-                { schemeReference, new List<string>() } 
+
+            OpenApiSecurityRequirement openApiSecurityRequirement = new()
+            {
+                { schemeReference, new List<string>() }
             };
             config.AddSecurityRequirement((doc) => openApiSecurityRequirement);
         }
@@ -167,7 +167,7 @@ namespace Materal.MergeBlock.Swagger
         /// <returns></returns>
         private static GlobalSwaggerOptions GetSwaggerConfig(IConfiguration? configuration)
         {
-            GlobalSwaggerOptions swaggerConfig = configuration?.GetConfigItem<GlobalSwaggerOptions>(GlobalSwaggerOptions.ConfigKey) ?? new GlobalSwaggerOptions();
+            GlobalSwaggerOptions swaggerConfig = configuration?.Get<GlobalSwaggerOptions>(GlobalSwaggerOptions.ConfigKey) ?? new GlobalSwaggerOptions();
             return swaggerConfig;
         }
     }

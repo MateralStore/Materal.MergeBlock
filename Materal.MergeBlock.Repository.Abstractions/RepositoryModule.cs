@@ -29,7 +29,7 @@ namespace Materal.MergeBlock.Repository.Abstractions
         public override void OnConfigureServices(ServiceConfigurationContext context)
         {
             if (context.Configuration is null) return;
-            TDBConfigType? dbConfig = context.Configuration.GetConfigItem<TDBConfigType>(ConfigKey);
+            TDBConfigType? dbConfig = context.Configuration.Get<TDBConfigType>(ConfigKey);
             if (dbConfig is null) return;
             AddDBContext(context.Services, dbConfig);
         }

@@ -31,7 +31,7 @@ namespace Materal.MergeBlock.Authorization
                 options.Filters.Add(new AuthorizeFilter());
                 options.Filters.Add<SetLoginUserInfoAttribute>();
             });
-            AuthorizationOptions config = context.Configuration?.GetConfigItem<AuthorizationOptions>(AuthorizationOptions.ConfigKey) ?? new();
+            AuthorizationOptions config = context.Configuration?.Get<AuthorizationOptions>(AuthorizationOptions.ConfigKey) ?? new();
             context.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
