@@ -31,12 +31,7 @@ namespace Materal.MergeBlock.Web
             {
                 options.SuppressAsyncSuffixInActionNames = true;
                 options.Filters.Add<ActionPageQueryFilterAttribute>();
-            }).AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null)
-            .AddNewtonsoftJson(options =>
-            {
-                if (webOptions is null || !webOptions.UsePascalCase) return;
-                options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-            });
+            }).AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
             context.Services.AddSingleton(mvcBuilder);
             MergeBlockContext? mergeBlockContext = context.Services.GetSingletonInstance<MergeBlockContext>();
             if (mergeBlockContext is not null)
