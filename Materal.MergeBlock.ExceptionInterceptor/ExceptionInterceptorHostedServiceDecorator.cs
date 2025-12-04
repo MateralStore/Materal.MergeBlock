@@ -5,7 +5,7 @@ namespace Materal.MergeBlock.ExceptionInterceptor
     /// <summary>
     /// 异常拦截器装饰器
     /// </summary>
-    public class ExceptionInterceptorHostedServiceDecorator(ILogger<GlobalExceptionFilter>? logger = null) : IHostedServiceDecorator
+    public class ExceptionInterceptorHostedServiceDecorator(ILogger<ExceptionInterceptorHostedServiceDecorator>? logger = null) : IHostedServiceDecorator
     {
         /// <inheritdoc/>
         public async Task<bool> OnExceptionAsync(CancellationToken cancellationToken, Exception exception)

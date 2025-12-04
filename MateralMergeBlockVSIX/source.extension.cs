@@ -12,7 +12,7 @@ namespace MateralMergeBlockVSIX
         public const string Name = "MateralMergeBlockVSIX";
         public const string Description = @"Materal.MergeBlock项目专用插件";
         public const string Language = "zh-CN";
-        public const string Version = "1.3.13";
+        public const string Version = "1.3.14";
         public const string Author = "Materal";
         public const string Tags = "";
         public const bool IsPreview = false;
