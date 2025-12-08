@@ -82,20 +82,18 @@ namespace Materal.MergeBlock.Swagger
         {
             OpenApiSecurityScheme bearerScheme = new()
             {
+                Type = SecuritySchemeType.Http,
+                Scheme = JwtBearerDefaults.AuthenticationScheme,
+                BearerFormat = "JWT",
                 Description = "在请求头部加入JWT授权。例子:Authorization:Bearer {token}",
                 Name = "Authorization",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey
+                In = ParameterLocation.Header
             };
             config.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerScheme);
-
-            OpenApiSecuritySchemeReference schemeReference = new(JwtBearerDefaults.AuthenticationScheme, null, null);
-
-            OpenApiSecurityRequirement openApiSecurityRequirement = new()
+            config.AddSecurityRequirement(document => new OpenApiSecurityRequirement
             {
-                { schemeReference, new List<string>() }
-            };
-            config.AddSecurityRequirement((doc) => openApiSecurityRequirement);
+                [new OpenApiSecuritySchemeReference(JwtBearerDefaults.AuthenticationScheme, document)] = []
+            });
         }
         /// <summary>
         /// 获取XML文档

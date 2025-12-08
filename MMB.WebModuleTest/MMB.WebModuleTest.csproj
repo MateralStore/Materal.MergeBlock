@@ -7,6 +7,7 @@
 		<NoWarn>CA1822,NU1507</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\Materal.MergeBlock.Authorization.Abstractions\Materal.MergeBlock.Authorization.Abstractions.csproj" />
 	  <ProjectReference Include="..\Materal.MergeBlock.Web\Materal.MergeBlock.Web.csproj" />
 	</ItemGroup>
 </Project>
