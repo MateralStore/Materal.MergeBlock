@@ -1,6 +1,4 @@
-﻿using Materal.Extensions;
-using Materal.MergeBlock.Abstractions;
-using System.Text;
+﻿using System.Text;
 
 namespace Materal.MergeBlock.Authorization.Abstractions
 {

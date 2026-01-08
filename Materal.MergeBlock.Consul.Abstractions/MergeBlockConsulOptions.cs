@@ -1,7 +1,4 @@
-﻿using Materal.MergeBlock.Abstractions;
-using Materal.Utils.Model;
-
-namespace Materal.MergeBlock.Consul.Abstractions
+﻿namespace Materal.MergeBlock.Consul.Abstractions
 {
     /// <summary>
     /// MergeBlockConsul配置

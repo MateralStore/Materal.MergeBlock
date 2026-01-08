@@ -1,8 +1,5 @@
-﻿using Materal.Extensions;
-using Materal.Extensions.DependencyInjection;
-using Materal.MergeBlock.Abstractions;
+﻿using Materal.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Materal.MergeBlock.Authorization.Abstractions
 {

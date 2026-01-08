@@ -1,6 +1,4 @@
-﻿using Materal.MergeBlock.Abstractions;
-
-namespace Materal.MergeBlock.Swagger.Abstractions
+﻿namespace Materal.MergeBlock.Swagger.Abstractions
 {
     /// <summary>
     /// 全局Swagger配置模型

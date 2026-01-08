@@ -20,6 +20,8 @@ namespace Materal.MergeBlock.Swagger
         /// <param name="context"></param>
         public override void OnConfigureServices(ServiceConfigurationContext context)
         {
+            GlobalSwaggerOptions swaggerConfig = GetSwaggerConfig(context.Configuration);
+            if (!swaggerConfig.Enable) return;
             IMvcBuilder? mvcBuilder = context.Services.GetSingletonInstance<IMvcBuilder>();
             if (mvcBuilder is null) return;
             MergeBlockContext? mergeBlockContext = context.Services.GetSingletonInstance<MergeBlockContext>();
@@ -40,21 +42,14 @@ namespace Materal.MergeBlock.Swagger
             if (!swaggerConfig.Enable) return;
             MergeBlockContext? mergeBlockContext = context.Services.GetSingletonInstance<MergeBlockContext>();
             if (mergeBlockContext is null) return;
-            IConfigurationSection? section = context.Configuration?.GetSection("MergeBlock:ApplicationName");
-            string applicationName = "MateralMergeBlock应用程序";
-            if (section is not null && !string.IsNullOrWhiteSpace(section.Value))
-            {
-                applicationName = section.Value;
-            }
-            context.Services.AddSwaggerGen(m => ConfigSwagger(m, mergeBlockContext, applicationName));
+            context.Services.AddSwaggerGen(m => ConfigSwagger(m, mergeBlockContext));
         }
         /// <summary>
         /// 配置Swagger
         /// </summary>
         /// <param name="config"></param>
         /// <param name="context"></param>
-        /// <param name="applicationName"></param>
-        private static void ConfigSwagger(SwaggerGenOptions config, MergeBlockContext context, string applicationName)
+        private static void ConfigSwagger(SwaggerGenOptions config, MergeBlockContext context)
         {
             List<string> xmlFiles = [];
             foreach (ModuleDescriptor moduleDescriptor in context.ModuleDescriptors)
@@ -65,10 +60,10 @@ namespace Materal.MergeBlock.Swagger
                 }
                 Type? type = moduleDescriptor.Type.Assembly.GetTypeByFilter(m => m.IsAssignableTo<ControllerBase>());
                 if (type is null) continue;
-                ConfigSwaggerDoc(moduleDescriptor, config, applicationName);
+                ConfigSwaggerDoc(moduleDescriptor, config);
                 xmlFiles.AddRange(GetXMLDoc(moduleDescriptor));
             }
-            xmlFiles = xmlFiles.Distinct().ToList();
+            xmlFiles = [.. xmlFiles.Distinct()];
             foreach (string xmlFile in xmlFiles)
             {
                 config.IncludeXmlComments(xmlFile);
@@ -116,8 +111,7 @@ namespace Materal.MergeBlock.Swagger
         /// </summary>
         /// <param name="moduleDescriptor"></param>
         /// <param name="config"></param>
-        /// <param name="applicationName"></param>
-        private static void ConfigSwaggerDoc(ModuleDescriptor moduleDescriptor, SwaggerGenOptions config, string applicationName)
+        private static void ConfigSwaggerDoc(ModuleDescriptor moduleDescriptor, SwaggerGenOptions config)
         {
             string? groupName = SwaggerControllerModelConvention.GetGroupName(moduleDescriptor.Type.Assembly);
             if (string.IsNullOrWhiteSpace(groupName)) return;

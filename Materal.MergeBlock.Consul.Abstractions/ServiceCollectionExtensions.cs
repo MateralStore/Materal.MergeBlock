@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-namespace Materal.MergeBlock.Consul.Abstractions
+﻿namespace Materal.MergeBlock.Consul.Abstractions
 {
     /// <summary>
     /// 依赖注入扩展
