@@ -8,6 +8,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Materal.MergeBlock.Authorization.Abstractions\Materal.MergeBlock.Authorization.Abstractions.csproj" />
+	  <ProjectReference Include="..\Materal.MergeBlock.Oscillator.Abstractions\Materal.MergeBlock.Oscillator.Abstractions.csproj" />
 	  <ProjectReference Include="..\Materal.MergeBlock.Web\Materal.MergeBlock.Web.csproj" />
 	</ItemGroup>
 </Project>

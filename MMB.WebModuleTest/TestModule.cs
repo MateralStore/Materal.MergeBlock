@@ -1,6 +1,4 @@
-﻿using Materal.MergeBlock.Abstractions;
-
-namespace MMB.WebModuleTest;
+﻿namespace MMB.WebModuleTest;
 
 /// <summary>
 /// 测试模块

@@ -21,6 +21,7 @@
 	  <ProjectReference Include="..\Materal.MergeBlock.Cors\Materal.MergeBlock.Cors.csproj" />
 	  <ProjectReference Include="..\Materal.MergeBlock.ExceptionInterceptor\Materal.MergeBlock.ExceptionInterceptor.csproj" />
 	  <ProjectReference Include="..\Materal.MergeBlock.Logger\Materal.MergeBlock.Logger.csproj" />
+	  <ProjectReference Include="..\Materal.MergeBlock.Oscillator\Materal.MergeBlock.Oscillator.csproj" />
 	  <ProjectReference Include="..\Materal.MergeBlock.Swagger\Materal.MergeBlock.Swagger.csproj" />
 	  <ProjectReference Include="..\Materal.MergeBlock.Web\Materal.MergeBlock.Web.csproj" />
 	  <ProjectReference Include="..\MMB.WebModuleTest\MMB.WebModuleTest.csproj" />

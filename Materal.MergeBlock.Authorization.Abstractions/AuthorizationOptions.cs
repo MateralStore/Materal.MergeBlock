@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Materal.Utils.Crypto;
+using System.Text;
 
 namespace Materal.MergeBlock.Authorization.Abstractions
 {
@@ -30,6 +31,6 @@ namespace Materal.MergeBlock.Authorization.Abstractions
         /// <summary>
         /// 二进制密钥
         /// </summary>
-        public byte[] KeyBytes => Encoding.UTF8.GetBytes(Key.ToMd5_32Encode(true));
+        public byte[] KeyBytes => Encoding.UTF8.GetBytes(MD5Crypto.Hash32(Key, true));
     }
 }

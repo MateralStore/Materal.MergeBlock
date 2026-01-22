@@ -46,6 +46,7 @@ namespace MateralMergeBlockVSIX.ToolWindows.ViewModels
             foreach (PropertyModel property in domain.Properties)
             {
                 if (property.HasAttribute<NotAddAttribute>()) continue;
+                if (property.HasAttribute<LoginUserIDAttribute>()) continue;
                 GeneratorOperationalModelProperty(codeContent, property);
             }
             codeContent.AppendLine($"    }}");
@@ -78,6 +79,7 @@ namespace MateralMergeBlockVSIX.ToolWindows.ViewModels
             foreach (PropertyModel property in domain.Properties)
             {
                 if (property.HasAttribute<NotEditAttribute>()) continue;
+                if (property.HasAttribute<LoginUserIDAttribute>()) continue;
                 GeneratorOperationalModelProperty(codeContent, property);
             }
             codeContent.AppendLine($"    }}");

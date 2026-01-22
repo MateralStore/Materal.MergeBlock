@@ -2,6 +2,7 @@
 using Materal.MergeBlock.Consul.Abstractions;
 using Materal.Utils.Consul;
 using Materal.Utils.Consul.ConfigModels;
+using Materal.Utils.Crypto;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
@@ -20,10 +21,10 @@ namespace Materal.MergeBlock.Consul
         /// <returns></returns>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            string configMD5 = mergeBlockConsulConfig.CurrentValue.ToJson().ToMd5_32Encode();
+            string configMD5 = MD5Crypto.Hash32(mergeBlockConsulConfig.CurrentValue.ToJson());
             mergeBlockConsulConfig.OnChange(async config =>
             {
-                string newConfigMD5 = config.ToJson().ToMd5_32Encode();
+                string newConfigMD5 = MD5Crypto.Hash32(config.ToJson());
                 if (newConfigMD5 != configMD5)
                 {
                     await RegisterConsulAsync(config);
