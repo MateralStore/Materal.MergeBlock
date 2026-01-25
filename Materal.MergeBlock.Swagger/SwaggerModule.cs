@@ -1,4 +1,5 @@
 ﻿using Materal.MergeBlock.Swagger.Abstractions;
+using Materal.Utils.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
@@ -159,7 +160,7 @@ namespace Materal.MergeBlock.Swagger
         /// <returns></returns>
         private static GlobalSwaggerOptions GetSwaggerConfig(IConfiguration? configuration)
         {
-            GlobalSwaggerOptions swaggerConfig = configuration?.Get<GlobalSwaggerOptions>(GlobalSwaggerOptions.ConfigKey) ?? new GlobalSwaggerOptions();
+            GlobalSwaggerOptions swaggerConfig = configuration?.GetConfigItem<GlobalSwaggerOptions>(GlobalSwaggerOptions.ConfigKey) ?? new GlobalSwaggerOptions();
             return swaggerConfig;
         }
     }

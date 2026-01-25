@@ -27,7 +27,7 @@
                 TDto dto = new();
                 if (autorecode)
                 {
-                    domain.CopyProperties(dto);
+                    CloneHelper.CopyProperties(domain, dto);
                 }
                 action?.Invoke(dto, domain);
                 if (!data.ContainsKey(domain.ID))

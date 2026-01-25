@@ -1,9 +1,0 @@
-﻿namespace ${ProjectName}.${ModuleName}.Abstractions
-{
-    /// <summary>
-    /// ${ModuleName}工作单元
-    /// </summary>
-    public interface I${ModuleName}UnitOfWork : I${ProjectName}UnitOfWork
-    {
-    }
-}

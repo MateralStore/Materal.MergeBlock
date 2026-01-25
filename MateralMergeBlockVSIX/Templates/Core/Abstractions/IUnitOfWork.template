@@ -1,9 +1,0 @@
-﻿namespace ${ProjectName}.Core.Abstractions
-{
-    /// <summary>
-    /// ${ProjectName}工作单元
-    /// </summary>
-    public interface I${ProjectName}UnitOfWork : IMergeBlockUnitOfWork
-    {
-    }
-}

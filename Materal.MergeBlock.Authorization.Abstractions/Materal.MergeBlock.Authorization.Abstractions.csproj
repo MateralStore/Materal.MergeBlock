@@ -9,7 +9,6 @@
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\..\Materal.Extensions\Materal.Extensions\Materal.Extensions.csproj" />
 		<ProjectReference Include="..\..\Materal.Utils\Materal.Utils.Crypto\Materal.Utils.Crypto.csproj" />
 		<ProjectReference Include="..\Materal.MergeBlock.Abstractions\Materal.MergeBlock.Abstractions.csproj" />
 		<ProjectReference Include="..\Materal.MergeBlock.Web.Abstractions\Materal.MergeBlock.Web.Abstractions.csproj" />

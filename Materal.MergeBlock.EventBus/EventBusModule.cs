@@ -1,4 +1,5 @@
 ﻿using Materal.EventBus.Abstraction;
+using Materal.Utils.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,15 +1,17 @@
-﻿<UserControl x:Class="MateralMergeBlockVSIX.MergeBlockManagerWindowControl"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
-             xmlns:viewModels="clr-namespace:MateralMergeBlockVSIX.ToolWindows.ViewModels"
-             toolkit:Themes.UseVsTheme="True"
-             mc:Ignorable="d"
-             Name="MyToolWindow" Loaded="UserControl_Loaded">
+﻿<UserControl
+    x:Class="MateralMergeBlockVSIX.MergeBlockManagerWindowControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
+    xmlns:viewModels="clr-namespace:MateralMergeBlockVSIX.ToolWindows.ViewModels"
+    Name="MyToolWindow"
+    toolkit:Themes.UseVsTheme="True"
+    Loaded="UserControl_Loaded"
+    mc:Ignorable="d">
     <UserControl.DataContext>
         <viewModels:MergeBlockManagerWindowViewModel x:Name="ViewModel" />
-    </UserControl.DataContext>    
+    </UserControl.DataContext>
     <ContentControl Content="{Binding CurrentControl, Mode=OneWay}" />
 </UserControl>

@@ -1,7 +1,5 @@
-﻿using Materal.MergeBlock.Abstractions;
-using Materal.MergeBlock.Abstractions.Models;
+﻿using Materal.MergeBlock.Abstractions.Models;
 using Materal.MergeBlock.Web.Abstractions.Controllers;
-using Materal.Utils.Model;
 using System.Reflection;
 
 namespace Materal.MergeBlock.Web.Abstractions.Extensions
@@ -99,7 +97,7 @@ namespace Materal.MergeBlock.Web.Abstractions.Extensions
             where TListDTO : class, IListDTO, new()
         {
             CollectionResultModel<TListDTO> data = await controller.GetListAsync(queryModel);
-            if (data.ResultType != ResultTypeEnum.Success) return [];
+            if (data.ResultType != ResultType.Success) return [];
             if (data.Data is null) return [];
             return data.Data;
         }

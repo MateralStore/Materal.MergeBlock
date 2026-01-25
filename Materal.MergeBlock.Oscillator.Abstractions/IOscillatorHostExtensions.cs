@@ -1,8 +1,8 @@
-﻿using Materal.Extensions;
-using Materal.Oscillator.Abstractions;
+﻿using Materal.Oscillator.Abstractions;
 using Materal.Oscillator.Abstractions.Oscillators;
 using Materal.Oscillator.Abstractions.PlanTriggers;
 using Materal.Oscillator.Abstractions.Works;
+using Materal.Utils.Extensions;
 
 namespace Materal.MergeBlock.Oscillator.Abstractions
 {

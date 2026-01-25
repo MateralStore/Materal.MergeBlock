@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Materal",
+  "classifications": [ "Common", "WebAPI" ],
+  "identity": "Materal.MergeBlock.ModuleTemplate",
+  "name": "Materal MergeBlock Module Template",
+  "shortName": "materal-module",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "ProjectName",
+  "preferNameDirectory": true,
+  "symbols": {
+    "ModuleName": {
+      "type": "parameter",
+      "datatype": "string",
+      "isRequired": true,
+      "replaces": "ModuleName",
+      "fileRename": "ModuleName",
+      "description": "模块名称（例如：User, Order等）"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "rename": {
+            "ProjectName.ModuleName.Abstractions": "ProjectName.ModuleName.Abstractions",
+            "ProjectName.ModuleName.Application": "ProjectName.ModuleName.Application",
+            "ProjectName.ModuleName.Repository": "ProjectName.ModuleName.Repository",
+            "ProjectName.ModuleName.WebAPI": "ProjectName.ModuleName.WebAPI"
+          }
+        }
+      ]
+    }
+  ]
+}

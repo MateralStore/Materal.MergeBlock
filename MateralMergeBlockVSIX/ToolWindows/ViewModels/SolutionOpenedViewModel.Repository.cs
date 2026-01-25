@@ -1,8 +1,8 @@
 ﻿#nullable enable
-using Materal.Extensions;
 using Materal.MergeBlock.GeneratorCode.Attributers;
 using Materal.MergeBlock.GeneratorCode.Extensions;
 using Materal.MergeBlock.GeneratorCode.Models;
+using Materal.Utils.Extensions;
 using MateralMergeBlockVSIX.Extensions;
 using MateralMergeBlockVSIX.ToolWindows.Attributes;
 using Microsoft.VisualStudio.PlatformUI;
@@ -173,9 +173,9 @@ namespace MateralMergeBlockVSIX.ToolWindows.ViewModels
                     codeContent.AppendLine($"        /// <summary>");
                     codeContent.AppendLine($"        /// 获取最大位序");
                     codeContent.AppendLine($"        /// </summary>");
-                    codeContent.AppendLine($"        /// <param name=\"{indexGroupPropertyModel.Name.FirstLower()}\"></param>");
+                    codeContent.AppendLine($"        /// <param name=\"{indexGroupPropertyModel.Name.ToLowerFirstLetter()}\"></param>");
                     codeContent.AppendLine($"        /// <returns></returns>");
-                    codeContent.AppendLine($"        Task<int> GetMaxIndexAsync({indexGroupPropertyModel.PredefinedType} {indexGroupPropertyModel.Name.FirstLower()});");
+                    codeContent.AppendLine($"        Task<int> GetMaxIndexAsync({indexGroupPropertyModel.PredefinedType} {indexGroupPropertyModel.Name.ToLowerFirstLetter()});");
                 }
             }
             codeContent.AppendLine($"    }}");
@@ -228,12 +228,12 @@ namespace MateralMergeBlockVSIX.ToolWindows.ViewModels
                 }
                 else
                 {
-                    codeContent.AppendLine($"        /// <param name=\"{indexGroupPropertyModel.Name.FirstLower()}\"></param>");
+                    codeContent.AppendLine($"        /// <param name=\"{indexGroupPropertyModel.Name.ToLowerFirstLetter()}\"></param>");
                     codeContent.AppendLine($"        /// <returns></returns>");
-                    codeContent.AppendLine($"        public async Task<int> GetMaxIndexAsync({indexGroupPropertyModel.PredefinedType} {indexGroupPropertyModel.Name.FirstLower()})");
+                    codeContent.AppendLine($"        public async Task<int> GetMaxIndexAsync({indexGroupPropertyModel.PredefinedType} {indexGroupPropertyModel.Name.ToLowerFirstLetter()})");
                     codeContent.AppendLine($"        {{");
-                    codeContent.AppendLine($"            if (!await DBSet.AnyAsync(m => m.{indexGroupPropertyModel.Name} == {indexGroupPropertyModel.Name.FirstLower()})) return -1;");
-                    codeContent.AppendLine($"            int result = await DBSet.Where(m => m.{indexGroupPropertyModel.Name} == {indexGroupPropertyModel.Name.FirstLower()}).MaxAsync(m => m.Index);");
+                    codeContent.AppendLine($"            if (!await DBSet.AnyAsync(m => m.{indexGroupPropertyModel.Name} == {indexGroupPropertyModel.Name.ToLowerFirstLetter()})) return -1;");
+                    codeContent.AppendLine($"            int result = await DBSet.Where(m => m.{indexGroupPropertyModel.Name} == {indexGroupPropertyModel.Name.ToLowerFirstLetter()}).MaxAsync(m => m.Index);");
                 }
                 codeContent.AppendLine($"            return result;");
                 codeContent.AppendLine($"        }}");

@@ -10,6 +10,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\Materal.Utils\Materal.Utils.AutoMapper\Materal.Utils.AutoMapper.csproj" />
+		<ProjectReference Include="..\..\Materal.Utils\Materal.Utils.Network\Materal.Utils.Network.csproj" />
 		<ProjectReference Include="..\Materal.MergeBlock.Application.Abstractions\Materal.MergeBlock.Application.Abstractions.csproj" />
 		<ProjectReference Include="..\Materal.MergeBlock.GeneratorCode\Materal.MergeBlock.GeneratorCode.csproj" />
 	</ItemGroup>

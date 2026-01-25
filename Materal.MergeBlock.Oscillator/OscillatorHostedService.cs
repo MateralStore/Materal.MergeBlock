@@ -1,6 +1,7 @@
 ﻿using Materal.MergeBlock.Oscillator.Abstractions;
 using Materal.Oscillator.Abstractions.Oscillators;
 using Materal.Oscillator.Abstractions.PlanTriggers;
+using Materal.Utils.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -23,7 +24,7 @@ namespace Materal.MergeBlock.Oscillator
             List<IOscillatorData> oscillators = [];
             foreach (Assembly assembly in mergeBlockContext.MergeBlockAssemblies)
             {
-                Type[] workDataTypes = assembly.GetTypes<IMergeBlockWorkData>().ToArray();
+                Type[] workDataTypes = [.. assembly.GetTypes<IMergeBlockWorkData>()];
                 if (workDataTypes.Length <= 0) continue;
                 foreach (Type workDataType in workDataTypes)
                 {

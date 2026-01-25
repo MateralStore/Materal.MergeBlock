@@ -124,7 +124,7 @@ namespace Materal.MergeBlock.Application.Abstractions.Services
                     {
                         string? name = parameterInfos[i].Name;
                         if (name == null || string.IsNullOrWhiteSpace(name)) continue;
-                        name = name.FirstUpper();
+                        name = name.ToUpperFirstLetter();
                         PropertyInfo? domainPropertyInfo = domainType.GetProperty(name);
                         if (domainPropertyInfo == null) continue;
                         args[i] = domainPropertyInfo.GetValue(domain);
@@ -237,7 +237,7 @@ namespace Materal.MergeBlock.Application.Abstractions.Services
         /// <param name="orderExpression"></param>
         /// <param name="sortOrder"></param>
         /// <returns></returns>
-        protected virtual async Task<(List<TListDTO> data, RangeModel rangeInfo)> GetListAsync(Expression<Func<TDomain, bool>> expression, TQueryModel model, Expression<Func<TDomain, object>>? orderExpression = null, SortOrderEnum sortOrder = SortOrderEnum.Descending)
+        protected virtual async Task<(List<TListDTO> data, RangeModel rangeInfo)> GetListAsync(Expression<Func<TDomain, bool>> expression, TQueryModel model, Expression<Func<TDomain, object>>? orderExpression = null, SortOrder sortOrder = SortOrder.Descending)
         {
             if (orderExpression == null)
             {
@@ -252,26 +252,26 @@ namespace Materal.MergeBlock.Application.Abstractions.Services
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        protected (Expression<Func<T, object>> orderExpression, SortOrderEnum sortOrder) GetDefaultOrderInfo<T>(TQueryModel model)
+        protected (Expression<Func<T, object>> orderExpression, SortOrder sortOrder) GetDefaultOrderInfo<T>(TQueryModel model)
             where T : class, IDomain
         {
             Expression<Func<T, object>>? result = model.GetSortExpression<T>();
-            SortOrderEnum sortOrder;
+            SortOrder sortOrder;
             if (result != null)
             {
-                sortOrder = model.IsAsc ? SortOrderEnum.Ascending : SortOrderEnum.Descending;
+                sortOrder = model.IsAsc ? SortOrder.Ascending : SortOrder.Descending;
             }
             else
             {
                 if (typeof(T).GetInterfaces().Contains(typeof(IIndexDomain)))
                 {
                     result = m => ((IIndexDomain)m).Index;
-                    sortOrder = SortOrderEnum.Ascending;
+                    sortOrder = SortOrder.Ascending;
                 }
                 else
                 {
                     result = m => m.CreateTime;
-                    sortOrder = SortOrderEnum.Descending;
+                    sortOrder = SortOrder.Descending;
                 }
             }
             return (result, sortOrder);
@@ -374,7 +374,7 @@ namespace Materal.MergeBlock.Application.Abstractions.Services
         /// <param name="orderExpression"></param>
         /// <param name="sortOrder"></param>
         /// <returns></returns>
-        protected virtual async Task<(List<TListDTO> data, RangeModel rangeInfo)> GetViewListAsync(Expression<Func<TViewDomain, bool>> expression, TQueryModel model, Expression<Func<TViewDomain, object>>? orderExpression = null, SortOrderEnum sortOrder = SortOrderEnum.Descending)
+        protected virtual async Task<(List<TListDTO> data, RangeModel rangeInfo)> GetViewListAsync(Expression<Func<TViewDomain, bool>> expression, TQueryModel model, Expression<Func<TViewDomain, object>>? orderExpression = null, SortOrder sortOrder = SortOrder.Descending)
         {
             if (orderExpression == null)
             {

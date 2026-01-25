@@ -24,7 +24,7 @@ namespace MateralMergeBlockVSIX.ToolWindows
                 SolutionNotOpenedViewModel viewModel = new()
                 {
                     ModuleName = ModuleName.Text,
-                    ProjectName = ViewModel.ProjectName,
+                    ProjectName = ViewModel.ProjectName!,
                     ProjectPath = ViewModel.ProjectPath ?? string.Empty
                 };
                 if (string.IsNullOrWhiteSpace(ViewModel.ProjectName) || string.IsNullOrWhiteSpace(ViewModel.ProjectPath)) return;

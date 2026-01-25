@@ -1,6 +1,5 @@
 ﻿using Materal.MergeBlock.Authorization.Abstractions;
 using Materal.MergeBlock.Web.Abstractions.Controllers;
-using Materal.Utils.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

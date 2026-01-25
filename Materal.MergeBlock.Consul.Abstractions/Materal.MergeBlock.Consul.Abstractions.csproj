@@ -6,6 +6,7 @@
 		<Description>Materal MergeBlock服务发现模块</Description>
 	</PropertyGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Materal.Utils\Materal.Utils.Network\Materal.Utils.Network.csproj" />
 	  <ProjectReference Include="..\Materal.MergeBlock.Abstractions\Materal.MergeBlock.Abstractions.csproj" />
 	  <ProjectReference Include="..\..\Materal.Utils\Materal.Utils\Materal.Utils.csproj" />
 	</ItemGroup>

@@ -1,7 +1,6 @@
 ﻿using Materal.MergeBlock.Abstractions.Models;
 using Materal.MergeBlock.Abstractions.Services;
 using Materal.MergeBlock.GeneratorCode.Attributers;
-using Materal.Utils.Model;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;

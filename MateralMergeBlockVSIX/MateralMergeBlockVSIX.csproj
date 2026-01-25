@@ -103,7 +103,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <EmbeddedResource Include="Templates\**" />
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="VSCommandTable.vsct">
@@ -124,7 +123,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Community.VisualStudio.VSCT" Version="16.0.29.6" PrivateAssets="all" />
-    <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.545" ExcludeAssets="Runtime">
+    <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.549" ExcludeAssets="Runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="IndexRange">
@@ -163,13 +162,13 @@
       <Project>{36a0cc95-9ee0-8245-ee81-31a51cd347ff}</Project>
       <Name>Materal.Abstractions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Materal.Extensions\Materal.Extensions\Materal.Extensions.csproj">
-      <Project>{788f06b2-1199-d9a3-ee57-32ab6e55bd91}</Project>
-      <Name>Materal.Extensions</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Materal.Utils\Materal.Utils.Windows\Materal.Utils.Windows.csproj">
       <Project>{9f5fb1bc-e4e9-12ec-5572-1b3701d6cd48}</Project>
       <Name>Materal.Utils.Windows</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Materal.Utils\Materal.Utils\Materal.Utils.csproj">
+      <Project>{65b1280e-b3c4-9ccf-2a1c-ffd19f81c3c5}</Project>
+      <Name>Materal.Utils</Name>
     </ProjectReference>
     <ProjectReference Include="..\Materal.MergeBlock.GeneratorCode\Materal.MergeBlock.GeneratorCode.csproj">
       <Project>{5e98236f-d60e-425e-a42a-ffd1d7ae7412}</Project>

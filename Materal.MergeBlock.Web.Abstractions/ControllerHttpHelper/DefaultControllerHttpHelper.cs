@@ -1,6 +1,5 @@
 ﻿using Materal.MergeBlock.Web.Abstractions.Controllers;
-using Materal.Utils.Http;
-using Materal.Utils.Model;
+using Materal.Utils.Network.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -125,7 +124,7 @@ namespace Materal.MergeBlock.Web.Abstractions.ControllerHttpHelper
                 if (tType.IsAssignableTo<ResultModel>())
                 {
                     ResultModel resultModel = tType.Instantiation<ResultModel>();
-                    resultModel.ResultType = ResultTypeEnum.Fail;
+                    resultModel.ResultType = ResultType.Fail;
                     resultModel.Message = message;
                     if (resultModel is TResult tResult)
                     {

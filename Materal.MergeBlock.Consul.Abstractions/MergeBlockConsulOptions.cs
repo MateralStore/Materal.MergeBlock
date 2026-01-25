@@ -1,4 +1,6 @@
-﻿namespace Materal.MergeBlock.Consul.Abstractions
+﻿using Materal.Utils.Network.Http;
+
+namespace Materal.MergeBlock.Consul.Abstractions
 {
     /// <summary>
     /// MergeBlockConsul配置

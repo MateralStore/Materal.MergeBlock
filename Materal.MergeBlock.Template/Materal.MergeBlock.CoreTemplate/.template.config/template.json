@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Materal",
+  "classifications": [ "Common", "Library" ],
+  "identity": "Materal.MergeBlock.CoreTemplate",
+  "name": "Materal MergeBlock Core Template",
+  "shortName": "materal-core",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "ProjectName",
+  "preferNameDirectory": true,
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "rename": {
+            "ProjectName.Core": "ProjectName.Core",
+            "ProjectName.Core.Abstractions": "ProjectName.Core.Abstractions",
+            "ProjectName.Core.Application": "ProjectName.Core.Application",
+            "ProjectName.Core.Repository": "ProjectName.Core.Repository"
+          }
+        }
+      ]
+    }
+  ]
+}

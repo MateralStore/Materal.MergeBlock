@@ -1,5 +1,4 @@
 ﻿using Materal.Utils.AutoMapper.Extensions;
-using Materal.Utils.Extensions;
 using System.Runtime.Loader;
 
 namespace Materal.MergeBlock.Extensions
@@ -42,7 +41,6 @@ namespace Materal.MergeBlock.Extensions
         private static IServiceCollection AddMergeBlockCore(this IServiceCollection services)
         {
             MateralServices.Services = services;
-            services.AddMateralUtils();
             services.AddAutoService(typeof(Plugin).Assembly);
             services.AddOptions();
             services.AddLogging();

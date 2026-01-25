@@ -153,17 +153,28 @@ namespace MateralMergeBlockVSIX.ToolWindows.ViewModels
             {
                 if (!moduleDirectoryInfo.Name.StartsWith($"{_projectName}.")) continue;
                 string moduleFullName = moduleDirectoryInfo.Name;
-                FileInfo[] solutionFileInfos = moduleDirectoryInfo.GetFiles("*.sln");
-                foreach (FileInfo solutionFileInfo in solutionFileInfos)
+                FileInfo[] slnFileInfos = moduleDirectoryInfo.GetFiles("*.sln");
+                AddModules(moduleFullName, slnFileInfos);
+                FileInfo[] slnxFileInfos = moduleDirectoryInfo.GetFiles("*.slnx");
+                AddModules(moduleFullName, slnxFileInfos);
+            }
+        }
+
+        /// <summary>
+        /// 添加模块
+        /// </summary>
+        /// <param name="moduleFullName"></param>
+        /// <param name="slnFileInfos"></param>
+        private void AddModules(string moduleFullName, FileInfo[] slnFileInfos)
+        {
+            foreach (FileInfo solutionFileInfo in slnFileInfos)
+            {
+                ModuleViewModel moduleViewModel = new()
                 {
-                    if (solutionFileInfo.Name != $"{moduleFullName}.sln") continue;
-                    ModuleViewModel moduleViewModel = new()
-                    {
-                        SolutionPath = solutionFileInfo.FullName,
-                        CanOpen = SolutionName != moduleFullName
-                    };
-                    Modules.Add(moduleViewModel);
-                }
+                    SolutionPath = solutionFileInfo.FullName,
+                    CanOpen = SolutionName != moduleFullName
+                };
+                Modules.Add(moduleViewModel);
             }
         }
     }

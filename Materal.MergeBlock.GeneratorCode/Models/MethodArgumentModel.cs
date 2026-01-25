@@ -85,7 +85,7 @@ namespace Materal.MergeBlock.GeneratorCode.Models
             if (PredefinedType.EndsWith("Model") && !PredefinedType.EndsWith("RequestModel"))
             {
                 requestPredefinedType = PredefinedType[0..^5] + "RequestModel";
-                requestName = $"request{Name.FirstUpper()}";
+                requestName = $"request{Name.ToUpperFirstLetter()}";
             }
             return (requestName, requestPredefinedType);
         }

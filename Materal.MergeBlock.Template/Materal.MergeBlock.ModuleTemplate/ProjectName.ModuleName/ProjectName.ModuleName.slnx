@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Core/">
+    <Project Path="../ProjectName.Core/ProjectName.Core.Abstractions/ProjectName.Core.Abstractions.csproj" />
+    <Project Path="../ProjectName.Core/ProjectName.Core.Application/ProjectName.Core.Application.csproj" />
+    <Project Path="../ProjectName.Core/ProjectName.Core.Repository/ProjectName.Core.Repository.csproj" />
+  </Folder>
+  <Folder Name="/解决方案项/">
+    <File Path="../Directory.Build.props" />
+    <File Path="../Directory.Packages.props" />
+  </Folder>
+  <Project Path="ProjectName.ModuleName.Abstractions/ProjectName.ModuleName.Abstractions.csproj" />
+  <Project Path="ProjectName.ModuleName.Application/ProjectName.ModuleName.Application.csproj" />
+  <Project Path="ProjectName.ModuleName.Repository/ProjectName.ModuleName.Repository.csproj" />
+  <Project Path="ProjectName.ModuleName.WebAPI/ProjectName.ModuleName.WebAPI.csproj" />
+</Solution>

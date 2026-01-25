@@ -1,6 +1,6 @@
 ﻿using Materal.MergeBlock.Web.Abstractions;
 using Materal.MergeBlock.Web.Abstractions.ControllerHttpHelper;
-using Materal.Utils.Http;
+using Materal.Utils.Network.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
