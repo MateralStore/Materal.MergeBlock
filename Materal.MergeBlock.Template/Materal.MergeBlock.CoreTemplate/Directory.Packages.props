@@ -1,35 +1,35 @@
-﻿<Project Toolsversion="1.4.0">
+﻿<Project ToolsVersion="15.0">
   <ItemGroup>
-    <PackageVersion Include="Materal.Abstractions" version="1.4.0" />
-    <PackageVersion Include="Materal.Extensions" version="1.4.0" />
-    <PackageVersion Include="Materal.Extensions.DependencyInjection" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Abstractions" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.AccessLog" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Application.Abstractions" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Authorization" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Authorization.Abstractions" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Consul" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Consul.Abstractions" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Cors" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Domain.Abstractions" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.EventBus" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.ExceptionInterceptor" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.GeneratorCode" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Logger" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Oscillator" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Oscillator.Abstractions" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Repository.Abstractions" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.ResponseCompression" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Swagger" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Web" version="1.4.0" />
-    <PackageVersion Include="Materal.MergeBlock.Web.Abstractions" version="1.4.0" />
-    <PackageVersion Include="Materal.Oscillator" version="1.4.0" />
-    <PackageVersion Include="Materal.Oscillator.Abstractions" version="1.4.0" />
+    <PackageVersion Include="Materal.Abstractions" version="1.4.1" />
+    <PackageVersion Include="Materal.Extensions" version="1.4.1" />
+    <PackageVersion Include="Materal.Extensions.DependencyInjection" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Abstractions" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.AccessLog" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Application.Abstractions" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Authorization" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Authorization.Abstractions" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Consul" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Consul.Abstractions" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Cors" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Domain.Abstractions" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.EventBus" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.ExceptionInterceptor" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.GeneratorCode" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Logger" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Oscillator" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Oscillator.Abstractions" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Repository.Abstractions" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.ResponseCompression" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Swagger" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Web" version="1.4.1" />
+    <PackageVersion Include="Materal.MergeBlock.Web.Abstractions" version="1.4.1" />
+    <PackageVersion Include="Materal.Oscillator" version="1.4.1" />
+    <PackageVersion Include="Materal.Oscillator.Abstractions" version="1.4.1" />
     <PackageVersion Include="Materal.TTA.EFRepository" version="1.4.0" />
     <PackageVersion Include="Materal.TTA.SqlServerEFRepository" version="1.4.0" />
-    <PackageVersion Include="Materal.Utils" version="1.4.0" />
-    <PackageVersion Include="Materal.Utils.Email" version="1.4.0" />
+    <PackageVersion Include="Materal.Utils" version="1.4.1" />
+    <PackageVersion Include="Materal.Utils.Email" version="1.4.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2" />
   </ItemGroup>

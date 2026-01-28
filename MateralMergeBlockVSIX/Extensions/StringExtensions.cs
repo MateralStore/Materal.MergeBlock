@@ -29,10 +29,10 @@ namespace MateralMergeBlockVSIX.Extensions
                 directoryInfo.Refresh();
             }
             filePath = Path.Combine(filePath, paths[^1]);
-            foreach (IMergeBlockEditGeneratorCodePlug plug in context.EditGeneratorCodePlugs)
-            {
-                await plug.ExcuteAsync(context, stringBuilder);
-            }
+            //foreach (IMergeBlockEditGeneratorCodePlug plug in context.EditGeneratorCodePlugs)
+            //{
+            //    await plug.ExcuteAsync(context, stringBuilder);
+            //}
             string content = stringBuilder.ToString();
             File.WriteAllText(filePath, content, Encoding.UTF8);
         }

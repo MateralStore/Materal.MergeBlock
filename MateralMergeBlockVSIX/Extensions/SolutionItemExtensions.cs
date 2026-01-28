@@ -92,13 +92,13 @@ namespace MateralMergeBlockVSIX.Extensions
         /// <returns></returns>
         public static bool IsEditGeneratorCodePlugFile(this FileInfo fileInfo)
         {
-            if (!fileInfo.Name.EndsWith(".cs")) return false;
-            string[] fileContent = File.ReadAllLines(fileInfo.FullName);
-            foreach (string line in fileContent)
-            {
-                string lineTrim = line.Trim();
-                if (lineTrim.StartsWith("public class ") && lineTrim.EndsWith($": {nameof(IMergeBlockEditGeneratorCodePlug)}")) return true;
-            }
+            //if (!fileInfo.Name.EndsWith(".cs")) return false;
+            //string[] fileContent = File.ReadAllLines(fileInfo.FullName);
+            //foreach (string line in fileContent)
+            //{
+            //    string lineTrim = line.Trim();
+            //    if (lineTrim.StartsWith("public class ") && lineTrim.EndsWith($": {nameof(IMergeBlockEditGeneratorCodePlug)}")) return true;
+            //}
             return false;
         }
     }

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/解决方案项/">
+    <File Path="../Directory.Build.props" />
+    <File Path="../Directory.Packages.props" />
+  </Folder>
+  <Project Path="MMB.Core.Abstractions/MMB.Core.Abstractions.csproj" />
+  <Project Path="MMB.Core.Application/MMB.Core.Application.csproj" />
+  <Project Path="MMB.Core.Repository/MMB.Core.Repository.csproj" />
+</Solution>

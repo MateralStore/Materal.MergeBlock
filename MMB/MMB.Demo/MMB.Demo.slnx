@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Core/">
+    <Project Path="../MMB.Core/MMB.Core.Abstractions/MMB.Core.Abstractions.csproj" />
+    <Project Path="../MMB.Core/MMB.Core.Application/MMB.Core.Application.csproj" />
+    <Project Path="../MMB.Core/MMB.Core.Repository/MMB.Core.Repository.csproj" />
+  </Folder>
+  <Folder Name="/解决方案项/">
+    <File Path="../Directory.Build.props" />
+    <File Path="../Directory.Packages.props" />
+  </Folder>
+  <Project Path="MMB.Demo.Abstractions/MMB.Demo.Abstractions.csproj" />
+  <Project Path="MMB.Demo.Application/MMB.Demo.Application.csproj" />
+  <Project Path="MMB.Demo.Repository/MMB.Demo.Repository.csproj" />
+  <Project Path="MMB.Demo.WebAPI/MMB.Demo.WebAPI.csproj" />
+</Solution>

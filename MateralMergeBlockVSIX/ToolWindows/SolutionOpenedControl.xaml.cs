@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using Materal.Abstractions;
-using MateralMergeBlockVSIX.ToolWindows.ViewModels;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Windows;
 using System.Windows.Controls;

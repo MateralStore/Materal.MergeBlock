@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="../../../../Common.props" />
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+	</PropertyGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\..\Materal.TTA\Materal.TTA.EFRepository\Materal.TTA.EFRepository.csproj" />
+	  <ProjectReference Include="..\..\..\Materal.MergeBlock.Domain.Abstractions\Materal.MergeBlock.Domain.Abstractions.csproj" />
+	  <ProjectReference Include="..\..\..\Materal.MergeBlock.Repository.Abstractions\Materal.MergeBlock.Repository.Abstractions.csproj" />
+	</ItemGroup>
+</Project>
