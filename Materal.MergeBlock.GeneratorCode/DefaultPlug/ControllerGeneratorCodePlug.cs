@@ -158,6 +158,6 @@ public class ControllerGeneratorCodePlug : IMergeBlockGeneratorCodePlug
         }
         codeContent.AppendLine($"    }}");
         codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleApplicationMGCPath, "Controllers", $"I{domain.Name}Controller.cs");
+        context.SaveAs(codeContent, context.ModuleApplicationMGCPath, "Controllers", $"{domain.Name}Controller.cs");
     }
 }

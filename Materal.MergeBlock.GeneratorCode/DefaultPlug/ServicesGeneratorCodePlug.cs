@@ -210,11 +210,11 @@ public class ServicesGeneratorCodePlug : IMergeBlockGeneratorCodePlug
             codeContent.AppendLine($"            #region 排序表达式");
             codeContent.AppendLine($"            Type domainType = typeof({domain.Name});");
             codeContent.AppendLine($"            Expression<Func<{domain.Name}, object>> sortExpression = m => m.CreateTime;");
-            codeContent.AppendLine($"            SortOrderEnum sortOrder = SortOrderEnum.Descending;");
+            codeContent.AppendLine($"            SortOrder sortOrder = SortOrder.Descending;");
             codeContent.AppendLine($"            if (queryModel.SortPropertyName is not null && !string.IsNullOrWhiteSpace(queryModel.SortPropertyName) && domainType.GetProperty(queryModel.SortPropertyName) is not null)");
             codeContent.AppendLine($"            {{");
             codeContent.AppendLine($"                sortExpression = queryModel.GetSortExpression<{domain.Name}>() ?? sortExpression;");
-            codeContent.AppendLine($"                sortOrder = queryModel.IsAsc ? SortOrderEnum.Ascending : SortOrderEnum.Descending;");
+            codeContent.AppendLine($"                sortOrder = queryModel.IsAsc ? SortOrder.Ascending : SortOrder.Descending;");
             codeContent.AppendLine($"            }}");
             codeContent.AppendLine($"            else if (domainType.IsAssignableTo<IIndexDomain>())");
             codeContent.AppendLine($"            {{");
@@ -222,7 +222,7 @@ public class ServicesGeneratorCodePlug : IMergeBlockGeneratorCodePlug
             codeContent.AppendLine($"                MemberExpression memberExpression = Expression.Property(parameterExpression, nameof(IIndexDomain.Index));");
             codeContent.AppendLine($"                UnaryExpression unaryExpression = Expression.Convert(memberExpression, typeof(object));");
             codeContent.AppendLine($"                sortExpression = Expression.Lambda<Func<{domain.Name}, object>>(unaryExpression, parameterExpression);");
-            codeContent.AppendLine($"                sortOrder = SortOrderEnum.Ascending;");
+            codeContent.AppendLine($"                sortOrder = SortOrder.Ascending;");
             codeContent.AppendLine($"            }}");
             codeContent.AppendLine($"            #endregion");
             codeContent.AppendLine($"            #region 查询数据源");
@@ -232,7 +232,7 @@ public class ServicesGeneratorCodePlug : IMergeBlockGeneratorCodePlug
             codeContent.AppendLine($"                allInfo = await cacheRepository.GetAllInfoFromCacheAsync();");
             codeContent.AppendLine($"                Func<{domain.Name}, bool> searchDlegate = queryModel.GetSearchDelegate<{domain.Name}>();");
             codeContent.AppendLine($"                Func<{domain.Name}, object> sortDlegate = sortExpression.Compile();");
-            codeContent.AppendLine($"                if (sortOrder == SortOrderEnum.Ascending)");
+            codeContent.AppendLine($"                if (sortOrder == SortOrder.Ascending)");
             codeContent.AppendLine($"                {{");
             codeContent.AppendLine($"                    allInfo = [.. allInfo.Where(searchDlegate).OrderBy(sortDlegate)];");
             codeContent.AppendLine($"                }}");
