@@ -30,7 +30,7 @@ public class ControllerMapperGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     {
         if (!service.HasMapperMethod) return;
         StringBuilder codeContent = new();
-        bool isUsing = false;
+        HashSet<string> addedUsings = new();
         foreach (string usingCode in service.Usings)
         {
             string trueUsingCode = usingCode;
@@ -38,10 +38,12 @@ public class ControllerMapperGeneratorCodePlug : IMergeBlockGeneratorCodePlug
             {
                 trueUsingCode = trueUsingCode.Replace("Services.Models", "RequestModel");
             }
-            codeContent.AppendLine($"using {trueUsingCode};");
-            isUsing = true;
+            if (addedUsings.Add(trueUsingCode))
+            {
+                codeContent.AppendLine($"using {trueUsingCode};");
+            }
         }
-        if (isUsing)
+        if (addedUsings.Count > 0)
         {
             codeContent.AppendLine($"");
         }
@@ -144,19 +146,24 @@ public class ControllerMapperGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     {
         if (!service.HasMapperMethod) return;
         StringBuilder codeContent = new();
-        bool isUsing = false;
+        HashSet<string> addedUsings = new();
         foreach (string usingCode in service.Usings)
         {
             string trueUsingCode = usingCode;
             if (trueUsingCode.Contains($"{context.ProjectName}.{context.ModuleName}.Abstractions.Services.Models"))
             {
-                codeContent.AppendLine($"using {usingCode};");
+                if (addedUsings.Add(trueUsingCode))
+                {
+                    codeContent.AppendLine($"using {trueUsingCode};");
+                }
                 trueUsingCode = trueUsingCode.Replace("Services.Models", "RequestModel");
             }
-            codeContent.AppendLine($"using {trueUsingCode};");
-            isUsing = true;
+            if (addedUsings.Add(trueUsingCode))
+            {
+                codeContent.AppendLine($"using {trueUsingCode};");
+            }
         }
-        if (isUsing)
+        if (addedUsings.Count > 0)
         {
             codeContent.AppendLine($"");
         }

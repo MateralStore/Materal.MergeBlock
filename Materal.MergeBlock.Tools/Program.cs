@@ -10,6 +10,9 @@ public class Program
 {
     static async Task<int> Main(string[] args)
     {
+#if DEBUG
+        await GeneratorCodeAsync(@"E:\Project\GDB\YueHeShe\Server\YueHeShe.Main");
+#endif
         Option<string> pathOption = new("--ProjectPath", "指定项目根路径");
         pathOption.AddAlias("-p");
         pathOption.IsRequired = false;
