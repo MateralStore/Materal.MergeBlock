@@ -2,7 +2,6 @@
 	<ItemGroup>
 		<PackageReference Include="Materal.MergeBlock.Authorization.Abstractions" />
 		<PackageReference Include="Materal.MergeBlock.Consul.Abstractions" />
-		<PackageReference Include="Materal.MergeBlock.Oscillator.Abstractions" />
 		<PackageReference Include="Materal.MergeBlock.Web.Abstractions" />
 	</ItemGroup>
 	<ItemGroup>

@@ -8,6 +8,6 @@
         /// <summary>
         /// 位序
         /// </summary>
-        public int Index { get; set; }
+        int Index { get; set; }
     }
 }

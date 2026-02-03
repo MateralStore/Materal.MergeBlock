@@ -8,6 +8,6 @@
         /// <summary>
         /// 父级
         /// </summary>
-        public Guid? ParentID { get; set; }
+        Guid? ParentID { get; set; }
     }
 }
