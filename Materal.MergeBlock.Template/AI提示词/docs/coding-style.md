@@ -410,6 +410,29 @@ using {ProjectName}.Abstractions.Services;
 
 > **提示**：在 Visual Studio 中使用 `Ctrl+K, Ctrl+D` 或 `Ctrl+E, D` 自动格式化代码，IDE 会自动对 using 指令进行排序。
 
+### 5.4 全局 Using 与 MGC 代码
+
+**问题场景**：代码生成器生成的代码可能缺少某些 `using` 指令，导致编译错误。
+
+**错误做法**：修改 MGC 文件夹下的代码
+
+**正确做法**：在 `GlobalUsings.cs` 中添加 `global using`
+
+```csharp
+// GlobalUsings.cs
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Mvc;
+
+// 其他全局 using...
+```
+
+**示例**：当 `[AllowAnonymous]` 特性报错找不到类型时，在 `GlobalUsings.cs` 中添加：
+```csharp
+global using Microsoft.AspNetCore.Authorization;
+```
+
+这样代码生成器生成的所有文件都能正确识别 `AllowAnonymous` 特性。
+
 ## 6 代码审查清单
 
 在提交代码前，请检查以下项目：

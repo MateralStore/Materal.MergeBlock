@@ -28,6 +28,6 @@ public class User : BaseDomain, IDomain
     /// 密码
     /// </summary>
     [NotAdd, NotEdit, NotListDTO, NotDTO]
-    [Required(ErrorMessage = "账号为空"), StringLength(32, ErrorMessage = "密码过长")]
+    [Required(ErrorMessage = "账号为空"), StringLength(64, ErrorMessage = "密码过长")]
     public string Password { get; set; } = string.Empty;
 }

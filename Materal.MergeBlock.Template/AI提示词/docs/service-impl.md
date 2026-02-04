@@ -289,51 +289,70 @@ protected (Expression<Func<T, object>> orderExpression, SortOrder sortOrder) Get
 
 #### 存在性检查
 
-| 方法 | 返回类型 | 说明 |
-|------|----------|------|
-| `ExistedAsync(Expression<Func<TDomain, bool>> expression)` | `Task<bool>` | 根据表达式判断是否存在 |
-| `ExistedAsync(Guid id)` | `Task<bool>` | 根据主键判断是否存在（Guid 类型主键） |
-| `ExistedAsync(FilterModel filterModel)` | `Task<bool>` | 根据 FilterModel 判断是否存在 |
+> **说明**：`IRepository` 默认同时提供同步与异步版本的方法（如 `Find` / `FindAsync`）。
+
+| 同步方法 | 异步方法 | 说明 |
+|---|---|---|
+| `bool Existed(Expression<Func<TDomain, bool>> expression)` | `Task<bool> ExistedAsync(Expression<Func<TDomain, bool>> expression)` | 根据表达式判断是否存在 |
+| `bool Existed(FilterModel filterModel)` | `Task<bool> ExistedAsync(FilterModel filterModel)` | 根据 FilterModel 判断是否存在 |
+| `bool Existed(Guid id)` | `Task<bool> ExistedAsync(Guid id)` | 根据主键判断是否存在（Guid 主键仓储：`IRepository<TDomain, Guid>`） |
 
 #### 计数
 
-| 方法 | 返回类型 | 说明 |
-|------|----------|------|
-| `CountAsync(Expression<Func<TDomain, bool>> expression)` | `Task<int>` | 根据表达式统计数量 |
-| `CountAsync(FilterModel filterModel)` | `Task<int>` | 根据 FilterModel 统计数量 |
+| 同步方法 | 异步方法 | 说明 |
+|---|---|---|
+| `int Count(Expression<Func<TDomain, bool>> expression)` | `Task<int> CountAsync(Expression<Func<TDomain, bool>> expression)` | 根据表达式统计数量 |
+| `int Count(FilterModel filterModel)` | `Task<int> CountAsync(FilterModel filterModel)` | 根据 FilterModel 统计数量 |
 
 #### 获取单条
 
-| 方法 | 返回类型 | 说明 |
-|------|----------|------|
-| `FirstAsync(Guid id)` | `Task<TDomain>` | 根据主键获取（无则抛异常） |
-| `FirstAsync(Expression<Func<TDomain, bool>> expression)` | `Task<TDomain>` | 根据表达式获取第一条（无则抛异常） |
-| `FirstOrDefaultAsync(Guid id)` | `Task<TDomain?>` | 根据主键获取或默认 |
-| `FirstOrDefaultAsync(Expression<Func<TDomain, bool>> expression)` | `Task<TDomain?>` | 根据表达式获取第一条或默认 |
+| 同步方法 | 异步方法 | 说明 |
+|---|---|---|
+| `TDomain First(Guid id)` | `Task<TDomain> FirstAsync(Guid id)` | 根据主键获取（无则抛异常） |
+| `TDomain First(Expression<Func<TDomain, bool>> expression)` | `Task<TDomain> FirstAsync(Expression<Func<TDomain, bool>> expression)` | 根据表达式获取第一条（无则抛异常） |
+| `TDomain First(FilterModel filterModel)` | `Task<TDomain> FirstAsync(FilterModel filterModel)` | 根据 FilterModel 获取第一条（无则抛异常） |
+| `TDomain? FirstOrDefault(Guid id)` | `Task<TDomain?> FirstOrDefaultAsync(Guid id)` | 根据主键获取或默认 |
+| `TDomain? FirstOrDefault(Expression<Func<TDomain, bool>> expression)` | `Task<TDomain?> FirstOrDefaultAsync(Expression<Func<TDomain, bool>> expression)` | 根据表达式获取第一条或默认 |
+| `TDomain? FirstOrDefault(FilterModel filterModel)` | `Task<TDomain?> FirstOrDefaultAsync(FilterModel filterModel)` | 根据 FilterModel 获取第一条或默认 |
 
 #### 查询多条
 
-| 方法 | 返回类型 | 说明 |
-|------|----------|------|
-| `FindAsync(Expression<Func<TDomain, bool>> expression)` | `Task<List<TDomain>>` | 根据表达式查找所有匹配项 |
-| `FindAsync(Expression, Expression<Func<TDomain, object>>, SortOrder)` | `Task<List<TDomain>>` | 带排序的查找 |
-| `FindAsync(FilterModel filterModel)` | `Task<List<TDomain>>` | 根据 FilterModel 查找 |
+| 同步方法 | 异步方法 | 说明 |
+|---|---|---|
+| `List<TDomain> Find(Expression<Func<TDomain, bool>> expression)` | `Task<List<TDomain>> FindAsync(Expression<Func<TDomain, bool>> expression)` | 根据表达式查找所有匹配项 |
+| `List<TDomain> Find(Expression<Func<TDomain, bool>> expression, Expression<Func<TDomain, object>> orderExpression)` | `Task<List<TDomain>> FindAsync(Expression<Func<TDomain, bool>> expression, Expression<Func<TDomain, object>> orderExpression)` | 带排序的查找 |
+| `List<TDomain> Find(Expression<Func<TDomain, bool>> expression, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder)` | `Task<List<TDomain>> FindAsync(Expression<Func<TDomain, bool>> expression, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder)` | 带排序方式的查找 |
+| `List<TDomain> Find(FilterModel filterModel)` | `Task<List<TDomain>> FindAsync(FilterModel filterModel)` | 根据 FilterModel 查找 |
+| `List<TDomain> Find(FilterModel filterModel, Expression<Func<TDomain, object>> orderExpression)` | `Task<List<TDomain>> FindAsync(FilterModel filterModel, Expression<Func<TDomain, object>> orderExpression)` | FilterModel + 排序查找 |
+| `List<TDomain> Find(FilterModel filterModel, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder)` | `Task<List<TDomain>> FindAsync(FilterModel filterModel, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder)` | FilterModel + 排序方式查找 |
 
 #### 范围查询（返回指定数量）
 
-| 方法 | 返回类型 | 说明 |
-|------|----------|------|
-| `RangeAsync(Expression, long skip, long take)` | `Task<(List<TDomain>, RangeModel)>` | 范围查询 |
-| `RangeAsync(Expression, RangeRequestModel)` | `Task<(List<TDomain>, RangeModel)>` | 使用 RangeRequestModel |
-| `RangeAsync(Expression, Expression, SortOrder, RangeRequestModel)` | `Task<(List<TDomain>, RangeModel)>` | 带排序的范围查询 |
+| 同步方法 | 异步方法 | 说明 |
+|---|---|---|
+| `(List<TDomain> data, RangeModel rangeInfo) Range(RangeRequestModel rangeRequestModel)` | `Task<(List<TDomain> data, RangeModel rangeInfo)> RangeAsync(RangeRequestModel rangeRequestModel)` | 不带过滤的范围查询 |
+| `(List<TDomain> data, RangeModel rangeInfo) Range(RangeRequestModel rangeRequestModel, Expression<Func<TDomain, object>> orderExpression)` | `Task<(List<TDomain> data, RangeModel rangeInfo)> RangeAsync(RangeRequestModel rangeRequestModel, Expression<Func<TDomain, object>> orderExpression)` | 不带过滤 + 排序 |
+| `(List<TDomain> data, RangeModel rangeInfo) Range(RangeRequestModel rangeRequestModel, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder)` | `Task<(List<TDomain> data, RangeModel rangeInfo)> RangeAsync(RangeRequestModel rangeRequestModel, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder)` | 不带过滤 + 排序方式 |
+| `(List<TDomain> data, RangeModel rangeInfo) Range(Expression<Func<TDomain, bool>> filterExpression, RangeRequestModel rangeRequestModel)` | `Task<(List<TDomain> data, RangeModel rangeInfo)> RangeAsync(Expression<Func<TDomain, bool>> filterExpression, RangeRequestModel rangeRequestModel)` | 过滤 + RangeRequestModel |
+| `(List<TDomain> data, RangeModel rangeInfo) Range(Expression<Func<TDomain, bool>> filterExpression, long skip, long take)` | `Task<(List<TDomain> data, RangeModel rangeInfo)> RangeAsync(Expression<Func<TDomain, bool>> filterExpression, long skip, long take)` | 过滤 + skip/take |
+| `(List<TDomain> data, RangeModel rangeInfo) Range(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, RangeRequestModel rangeRequestModel)` | `Task<(List<TDomain> data, RangeModel rangeInfo)> RangeAsync(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, RangeRequestModel rangeRequestModel)` | 过滤 + 排序 + RangeRequestModel |
+| `(List<TDomain> data, RangeModel rangeInfo) Range(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder, RangeRequestModel rangeRequestModel)` | `Task<(List<TDomain> data, RangeModel rangeInfo)> RangeAsync(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder, RangeRequestModel rangeRequestModel)` | 过滤 + 排序方式 + RangeRequestModel |
+| `(List<TDomain> data, RangeModel rangeInfo) Range(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, long skip, long take)` | `Task<(List<TDomain> data, RangeModel rangeInfo)> RangeAsync(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, long skip, long take)` | 过滤 + 排序 + skip/take |
+| `(List<TDomain> data, RangeModel rangeInfo) Range(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder, long skip, long take)` | `Task<(List<TDomain> data, RangeModel rangeInfo)> RangeAsync(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder, long skip, long take)` | 过滤 + 排序方式 + skip/take |
 
 #### 分页查询
 
-| 方法 | 返回类型 | 说明 |
-|------|----------|------|
-| `PagingAsync(PageRequestModel)` | `Task<(List<TDomain>, PageModel)>` | 分页查询 |
-| `PagingAsync(Expression, long pageIndex, long pageSize)` | `Task<(List<TDomain>, PageModel)>` | 简单分页 |
-| `PagingAsync(Expression, Expression, SortOrder, PageRequestModel)` | `Task<(List<TDomain>, PageModel)>` | 带排序的分页 |
+| 同步方法 | 异步方法 | 说明 |
+|---|---|---|
+| `(List<TDomain> data, PageModel pageInfo) Paging(PageRequestModel pageRequestModel)` | `Task<(List<TDomain> data, PageModel pageInfo)> PagingAsync(PageRequestModel pageRequestModel)` | 分页查询 |
+| `(List<TDomain> data, PageModel pageInfo) Paging(PageRequestModel pageRequestModel, Expression<Func<TDomain, object>> orderExpression)` | `Task<(List<TDomain> data, PageModel pageInfo)> PagingAsync(PageRequestModel pageRequestModel, Expression<Func<TDomain, object>> orderExpression)` | 分页 + 排序 |
+| `(List<TDomain> data, PageModel pageInfo) Paging(PageRequestModel pageRequestModel, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder)` | `Task<(List<TDomain> data, PageModel pageInfo)> PagingAsync(PageRequestModel pageRequestModel, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder)` | 分页 + 排序方式 |
+| `(List<TDomain> data, PageModel pageInfo) Paging(Expression<Func<TDomain, bool>> filterExpression, PageRequestModel pageRequestModel)` | `Task<(List<TDomain> data, PageModel pageInfo)> PagingAsync(Expression<Func<TDomain, bool>> filterExpression, PageRequestModel pageRequestModel)` | 过滤 + 分页 |
+| `(List<TDomain> data, PageModel pageInfo) Paging(Expression<Func<TDomain, bool>> filterExpression, long pageIndex, long pageSize)` | `Task<(List<TDomain> data, PageModel pageInfo)> PagingAsync(Expression<Func<TDomain, bool>> filterExpression, long pageIndex, long pageSize)` | 过滤 + 简单分页 |
+| `(List<TDomain> data, PageModel pageInfo) Paging(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, PageRequestModel pageRequestModel)` | `Task<(List<TDomain> data, PageModel pageInfo)> PagingAsync(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, PageRequestModel pageRequestModel)` | 过滤 + 排序 + 分页 |
+| `(List<TDomain> data, PageModel pageInfo) Paging(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder, PageRequestModel pageRequestModel)` | `Task<(List<TDomain> data, PageModel pageInfo)> PagingAsync(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder, PageRequestModel pageRequestModel)` | 过滤 + 排序方式 + 分页 |
+| `(List<TDomain> data, PageModel pageInfo) Paging(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, long pageIndex, long pageSize)` | `Task<(List<TDomain> data, PageModel pageInfo)> PagingAsync(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, long pageIndex, long pageSize)` | 过滤 + 排序 + 简单分页 |
+| `(List<TDomain> data, PageModel pageInfo) Paging(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder, long pageIndex, long pageSize)` | `Task<(List<TDomain> data, PageModel pageInfo)> PagingAsync(Expression<Func<TDomain, bool>> filterExpression, Expression<Func<TDomain, object>> orderExpression, SortOrder sortOrder, long pageIndex, long pageSize)` | 过滤 + 排序方式 + 简单分页 |
 
 **使用示例**：
 
@@ -388,7 +407,29 @@ public partial class UserServiceImpl : IUserService
 }
 ```
 
-### 5.3 依赖注入
+### 5.2.1 文件组织规则
+
+当服务实现方法较少时（如少于 5 个自定义方法），所有方法应直接放在主文件中，无需使用 `.Custom`、`.Extensions` 等辅助后缀：
+
+```csharp
+// 正确：方法直接定义在主文件中
+public partial class UserServiceImpl(IUserRepository userRepository, IMainUnitOfWork unitOfWork)
+{
+    public async Task ResetPasswordAsync(ResetPasswordModel model)
+    {
+        // ...
+    }
+
+    public async Task EnableUserAsync(EnableUserModel model)
+    {
+        // ...
+    }
+}
+```
+
+只有当服务实现方法非常多、按职责拆分能显著提高可读性时，才考虑拆分到多个文件。拆分时应使用描述性的文件名，如 `UserServiceImpl.Auth.cs`（认证相关）或 `UserServiceImpl.Password.cs`（密码相关）。
+
+### 5.4 依赖注入
 
 使用 C# 12+ 主构造函数注入：
 
@@ -408,9 +449,9 @@ public partial class UserServiceImpl(
 3. 其他服务
 4. ILogger（可选）
 
-### 5.4 如何让框架自动将服务注入到容器中
+### 5.5 如何让框架自动将服务注入到容器中
 
-## 6 配置获取规范
+## 7 配置获取规范
 
 ### 6.1 使用 IOptionsMonitor<T> 获取配置
 
@@ -538,7 +579,7 @@ public async Task EditNormalFieldsAsync(EditNormalFieldsModel model)
 | 需要条件判断才更新 | 部分更新 | 业务逻辑判断 |
 | 有自增/自减操作 | 部分更新 | 如 EditCount -= 1 |
 
-## 7 依赖注入
+## 8 依赖注入
 
 框架使用 `Materal.Extensions.DependencyInjection` 包实现自动注入功能。通过以下方式标记类，框架会自动将其注册到 DI 容器中：
 
@@ -654,7 +695,7 @@ public class UserServiceImpl : IUserService
 }
 ```
 
-## 8 CRUD 方法实现模式
+## 9 CRUD 方法实现模式
 
 ### 8.1 AddAsync 实现
 
@@ -868,7 +909,7 @@ protected override async Task<(List<UserListDTO> data, RangeModel rangeInfo)> Ge
 }
 ```
 
-## 9 自定义服务方法实现
+## 10 自定义服务方法实现
 
 ### 9.1 无参数方法
 
@@ -907,7 +948,7 @@ public async Task ResetPasswordAsync(ResetPasswordModel model)
 }
 ```
 
-## 10 表达式树组合
+## 11 表达式树组合
 
 ### 10.1 基本用法
 
@@ -967,7 +1008,7 @@ if (model.EndDate != null)
 }
 ```
 
-## 11 空白服务实现
+## 12 空白服务实现
 
 ### 11.1 适用场景
 
@@ -1026,7 +1067,93 @@ public partial class StoredFileServiceImpl : BaseServiceImpl, IStoredFileService
 | 方法 | `FindAsync` | 查询多条 |
 | 方法 | `PagingAsync` / `RangeAsync` | 分页/范围查询 |
 
-## 12 与其他服务/仓储的协作
+## 13 无实体服务实现（认证服务等）
+
+### 12.1 适用场景
+
+某些服务不关联任何实体（如认证服务、配置服务），这些服务需要特殊处理：
+
+- 认证服务（登录、修改密码、获取当前用户）
+- 配置服务（获取应用配置）
+- 工具服务（文件处理、数据转换）
+
+### 12.2 服务实现
+
+无实体服务继承 `BaseServiceImpl`，实现自定义服务接口：
+
+```csharp
+namespace {ProjectName}.{ModuleName}.Application.Services;
+
+/// <summary>
+/// 认证服务实现
+/// </summary>
+public partial class AuthServiceImpl(
+    ITokenService tokenService,
+    IAdminRepository adminRepository,
+    ITeacherRepository teacherRepository,
+    IMainUnitOfWork unitOfWork) : BaseServiceImpl, IAuthService, IScopedDependency<IAuthService>
+{
+    /// <summary>
+    /// 登录
+    /// </summary>
+    public async Task<LoginResultDTO> LoginAsync(LoginModel model)
+    {
+        // 查询管理员
+        Admin? admin = await adminRepository.FirstOrDefaultAsync(x => x.Account == model.UserName);
+        if (admin != null)
+        {
+            if (!admin.Enable) throw new ZhiTuException("账号已被禁用");
+            if (!VerifyPassword(model.Password, admin.Password)) throw new ZhiTuException("密码错误");
+
+            string token = tokenService.GetToken(new Claim("UserID", admin.ID.ToString()), new Claim("role", "Admin"));
+            admin.LastLoginTime = DateTime.Now;
+            unitOfWork.RegisterEdit(admin);
+            await unitOfWork.CommitAsync();
+
+            return new LoginResultDTO
+            {
+                Token = token,
+                ID = admin.ID,
+                Name = admin.Name,
+                Account = admin.Account,
+                UserType = UserType.Admin
+            };
+        }
+        // ... 类似处理教师登录
+
+        throw new ZhiTuException("账号或密码错误");
+    }
+}
+```
+
+### 12.3 控制器实现
+
+无实体服务使用 `[MapperController]` 特性时，**需要手动创建基类控制器**：
+
+```csharp
+namespace {ProjectName}.{ModuleName}.Application.Controllers;
+
+/// <summary>
+/// 认证控制器
+/// </summary>
+public partial class AuthController : MainController<IAuthService>
+{
+}
+```
+
+**说明**：
+- `MainController<TService>` 继承自 `MergeBlockController<TService>`
+- 框架会自动将控制器注册到 DI 容器，无需添加 `IScopedDependency`
+
+### 12.4 文件位置
+
+| 类型 | 位置 |
+|------|------|
+| 服务接口 | `{ModuleName}.Abstractions/Services/IAuthService.cs` |
+| 服务实现 | `{ModuleName}.Application/Services/AuthServiceImpl.cs` |
+| 控制器实现 | `{ModuleName}.Application/Controllers/AuthController.cs` |
+
+## 14 与其他服务/仓储的协作
 
 ### 12.1 优先使用现有服务
 
@@ -1212,7 +1339,7 @@ IRoleRepository roleRepo = UnitOfWork.GetRepository<IRoleRepository>();
 - **延迟执行**：注册操作不会立即执行，只在提交时执行
 - **自动追踪**：框架会自动追踪实体的变更状态
 
-## 13 异常处理
+## 15 异常处理
 
 ### 13.1 使用项目异常类
 
@@ -1266,7 +1393,7 @@ public async Task<UserDTO> GetUserAsync(Guid id)
 }
 ```
 
-## 14 性能优化
+## 16 性能优化
 
 ### 14.1 避免 N+1 查询
 
@@ -1344,7 +1471,7 @@ var result = allRecords
     .ToDictionary(g => g.Key, g => g.Count());
 ```
 
-## 15 禁止操作
+## 17 禁止操作
 
 - **不要**在 MGC 文件夹下编写任何代码
 - **不要**忘记使用 `partial` 关键字
@@ -1354,7 +1481,7 @@ var result = allRecords
 - **不要**使用 `!` 规避 null 警告，应明确处理 null 情况
 - **不要**保留未使用的方法参数
 
-## 16 正确操作
+## 18 正确操作
 
 - 服务实现放在 `Application/Services/` 目录
 - 遵循 [编码规范](coding-style.md) 中的命名和格式要求
@@ -1365,7 +1492,7 @@ var result = allRecords
 - 使用表达式树组合替代内存过滤
 - 异常抛出由框架统一处理
 
-## 17 代码示例
+## 19 代码示例
 
 ### 17.1 完整的服务实现示例
 

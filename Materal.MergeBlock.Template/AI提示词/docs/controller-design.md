@@ -25,7 +25,7 @@ public partial class InternalLog : IDomain<Guid>
 
 **自动生成**：控制器接口文件 `I{Entity}Controller.cs`，位于 `MGC/Controllers/` 目录
 
-### 2. 使用 [MapperController] 特性的服务接口（自动生成）
+### 2. 使用 [MapperController] 特性的服务接口
 
 使用 `[MapperController]` 特性标记的服务方法，代码生成器自动生成控制器接口：
 
@@ -37,7 +37,31 @@ public partial interface IUserService
 }
 ```
 
-**自动生成**：控制器接口文件 `I{Entity}Controller.Mapper.cs`
+**自动生成**：
+- 控制器接口：`MGC/Controllers/I{Entity}Controller.Mapper.cs`
+
+#### 无实体服务的特殊处理
+
+**有实体**的服务：代码生成器会自动创建控制器实现，无需手动处理。
+
+**无实体**的服务（如认证服务）：代码生成器**不会**自动创建控制器实现，需要**手动创建**：
+
+```csharp
+// Application/Controllers/AuthController.cs
+namespace {ProjectName}.{ModuleName}.Application.Controllers;
+
+/// <summary>
+/// 认证控制器
+/// </summary>
+public partial class AuthController : MainController<IAuthService>
+{
+}
+```
+
+| 服务类型 | 控制器实现 | 说明 |
+|----------|------------|------|
+| 有实体服务 | 代码生成器自动生成 | 位于 `MGC/Controllers/` |
+| 无实体服务 | **需要手动创建** | 位于 `Application/Controllers/` |
 
 ### 3. 自定义控制器接口（手动创建）
 

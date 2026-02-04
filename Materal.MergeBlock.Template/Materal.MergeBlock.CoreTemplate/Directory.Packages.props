@@ -23,9 +23,9 @@
     <PackageVersion Include="Materal.MergeBlock.Swagger.Abstractions" Version="1.4.4" />
     <PackageVersion Include="Materal.MergeBlock.Web" Version="1.4.4" />
     <PackageVersion Include="Materal.MergeBlock.Web.Abstractions" Version="1.4.4" />
-    <PackageVersion Include="Materal.TTA.EFRepository" Version="1.4.1" />
-    <PackageVersion Include="Materal.TTA.SqliteEFRepository" Version="1.4.1" />
-    <PackageVersion Include="Materal.TTA.SqlServerEFRepository" Version="1.4.1" />
+    <PackageVersion Include="Materal.TTA.EFRepository" Version="1.4.2" />
+    <PackageVersion Include="Materal.TTA.SqliteEFRepository" Version="1.4.2" />
+    <PackageVersion Include="Materal.TTA.SqlServerEFRepository" Version="1.4.2" />
     <PackageVersion Include="Materal.Utils" Version="1.4.5" />
     <PackageVersion Include="Materal.Utils.BarCode" Version="1.4.5" />
     <PackageVersion Include="Materal.Utils.CloudStorage.Tencent" Version="1.4.5" />

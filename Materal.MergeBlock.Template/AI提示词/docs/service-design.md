@@ -43,8 +43,23 @@ public partial interface IStatisticsService : IBaseService
 ```
 {ModuleName}.Abstractions/
 └── Services/
-    └── I{EntityName}Service.cs      ← 服务接口
+    └── I{EntityName}Service.cs      ← 服务接口（包含所有方法）
 ```
+
+### 文件组织规则
+
+当服务接口方法较少时（如少于 5 个自定义方法），所有方法应直接放在主文件中，无需使用 `.Custom`、`.Extensions` 等辅助后缀：
+
+```csharp
+// 正确：方法直接定义在主文件中
+public partial interface IUserService : IBaseService<...>
+{
+    Task<UserDTO> GetByAccountAsync(string account);
+    Task ResetPasswordAsync(ResetPasswordModel model);
+}
+```
+
+只有当服务接口方法非常多、需要按职责拆分时，才考虑拆分到多个文件。拆分时应使用描述性的文件名，如 `I{EntityName}Service.Auth.cs`（认证相关）或 `I{EntityName}Service.Password.cs`（密码相关）。
 
 ### 必须使用 partial
 
