@@ -1,10 +1,139 @@
-﻿namespace Materal.MergeBlock.GeneratorCode.DefaultPlug;
+using Scriban;
+using Scriban.Runtime;
+
+namespace Materal.MergeBlock.GeneratorCode.DefaultPlug;
 
 /// <summary>
 /// 数据传输模型代码生成插件
 /// </summary>
 public class DTOGeneratorCodePlug : IMergeBlockGeneratorCodePlug
 {
+    /// <summary>
+    /// 属性视图模型（用于模板渲染）
+    /// </summary>
+    private class PropertyViewModel
+    {
+        /// <summary>
+        /// 属性名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 属性类型（如：string、int?）
+        /// </summary>
+        public string PredefinedType { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 属性注释（XML文档注释中的summary内容）
+        /// </summary>
+        public string? Annotation { get; set; }
+
+        /// <summary>
+        /// 属性初始值（如："0"、"new List()"）
+        /// </summary>
+        public string? Initializer { get; set; }
+
+        /// <summary>
+        /// 属性是否可空（类型以?结尾）
+        /// </summary>
+        public bool CanNull { get; set; }
+
+        /// <summary>
+        /// 是否包含在ListDTO中
+        /// </summary>
+        public bool IncludeInListDto { get; set; }
+
+        /// <summary>
+        /// 是否包含在DTO中（ListDTO的额外属性）
+        /// </summary>
+        public bool IncludeInDto { get; set; }
+
+        /// <summary>
+        /// 验证特性代码（如：[Required(ErrorMessage = "名称不能为空")]）
+        /// </summary>
+        public string? VerificationAttributesCode { get; set; }
+    }
+
+    /// <summary>
+    /// 领域模型视图模型（用于模板渲染）
+    /// </summary>
+    private class DomainViewModel
+    {
+        /// <summary>
+        /// 领域模型名称（如：User）
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 领域模型注释（XML文档注释中的summary内容）
+        /// </summary>
+        public string? Annotation { get; set; }
+
+        /// <summary>
+        /// 属性列表（用于生成DTO属性）
+        /// </summary>
+        public List<PropertyViewModel> Properties { get; set; } = [];
+    }
+
+    private static readonly string _listDtoTemplate = @"
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.DTO.{{domain.Name}};
+
+/// <summary>
+/// {{domain.Annotation}}列表数据传输模型
+/// </summary>
+public partial class {{domain.Name}}ListDTO : IListDTO
+{
+    /// <summary>
+    /// 唯一标识
+    /// </summary>
+    [Required(ErrorMessage = ""唯一标识为空"")]
+    public Guid ID { get; set; }
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    [Required(ErrorMessage = ""创建时间为空"")]
+    public DateTime CreateTime { get; set; }
+
+    {{- for property in domain.Properties}}
+        {{- if property.IncludeInListDto}}
+    {{- if property.Annotation}}
+    /// <summary>
+    /// {{property.Annotation}}
+    /// </summary>
+    {{- end}}
+    {{- if property.VerificationAttributesCode}}
+    {{property.VerificationAttributesCode}}
+    {{- end}}
+    public {{property.PredefinedType}} {{property.Name}} { get; set; }{{if property.Initializer != null}} = {{property.Initializer}};{{end}}
+        {{- end}}
+    {{- end}}
+}
+";
+
+    private static readonly string _dtoTemplate = @"
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.DTO.{{domain.Name}};
+
+/// <summary>
+/// {{domain.Annotation}}数据传输模型
+/// </summary>
+public partial class {{domain.Name}}DTO : {{domain.Name}}ListDTO, IDTO
+{
+    {{- for property in domain.Properties}}
+        {{- if property.IncludeInDto}}
+    {{- if property.Annotation}}
+    /// <summary>
+    /// {{property.Annotation}}
+    /// </summary>
+    {{- end}}
+    {{- if property.VerificationAttributesCode}}
+    {{property.VerificationAttributesCode}}
+    {{- end}}
+    public {{property.PredefinedType}} {{property.Name}} { get; set; }{{if property.Initializer != null}} = {{property.Initializer}};{{end}}
+        {{- end}}
+    {{- end}}
+}
+";
+
     /// <inheritdoc/>
     public Task BeforeExcuteAsync(GeneratorCodeContext context) => Task.CompletedTask;
 
@@ -15,7 +144,6 @@ public class DTOGeneratorCodePlug : IMergeBlockGeneratorCodePlug
         {
             await GeneratorListDTOModelAsync(context, domain, context.Domains);
             await GeneratorDTOModelAsync(context, domain, context.Domains);
-            await GeneratorTreeListDTOModelAsync(context, domain);
         }
     }
 
@@ -32,32 +160,11 @@ public class DTOGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     {
         if (domain.HasAttribute<NotListDTOAttribute>()) return;
         DomainModel targetDomain = domain.GetQueryDomain(domains);
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Abstractions.DTO.{domain.Name}");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}列表数据传输模型");
-        codeContent.AppendLine($"    /// </summary>");
-        codeContent.AppendLine($"    public partial class {domain.Name}ListDTO : IListDTO");
-        codeContent.AppendLine($"    {{");
-        codeContent.AppendLine($"        /// <summary>");
-        codeContent.AppendLine($"        /// 唯一标识");
-        codeContent.AppendLine($"        /// </summary>");
-        codeContent.AppendLine($"        [Required(ErrorMessage = \"唯一标识为空\")]");
-        codeContent.AppendLine($"        public Guid ID {{ get; set; }}");
-        codeContent.AppendLine($"        /// <summary>");
-        codeContent.AppendLine($"        /// 创建时间");
-        codeContent.AppendLine($"        /// </summary>");
-        codeContent.AppendLine($"        [Required(ErrorMessage = \"创建时间为空\")]");
-        codeContent.AppendLine($"        public DateTime CreateTime {{ get; set; }}");
-        foreach (PropertyModel property in targetDomain.Properties)
-        {
-            if (property.HasAttribute<NotDTOAttribute>() || property.HasAttribute<NotListDTOAttribute>()) continue;
-            GeneratorDTOModelProperty(codeContent, property);
-        }
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleAbstractionsMGCPath, "DTO", domain.Name, $"{domain.Name}ListDTO.cs");
+
+        Template template = Template.Parse(_listDtoTemplate);
+        string codeContent = RenderTemplate(template, context, domain, targetDomain);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleAbstractionsMGCPath, "DTO", domain.Name, $"{domain.Name}ListDTO.cs");
     }
 
     /// <summary>
@@ -70,88 +177,60 @@ public class DTOGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     {
         if (domain.HasAttribute<NotDTOAttribute>()) return;
         DomainModel targetDomain = domain.GetQueryDomain(domains);
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Abstractions.DTO.{domain.Name}");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}数据传输模型");
-        codeContent.AppendLine($"    /// </summary>");
-        codeContent.AppendLine($"    public partial class {domain.Name}DTO : {domain.Name}ListDTO, IDTO");
-        codeContent.AppendLine($"    {{");
-        foreach (PropertyModel property in targetDomain.Properties)
-        {
-            if (property.HasAttribute<NotDTOAttribute>() || !property.HasAttribute<NotListDTOAttribute>()) continue;
-            GeneratorDTOModelProperty(codeContent, property);
-        }
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleAbstractionsMGCPath, "DTO", domain.Name, $"{domain.Name}DTO.cs");
+
+        Template template = Template.Parse(_dtoTemplate);
+        string codeContent = RenderTemplate(template, context, domain, targetDomain);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleAbstractionsMGCPath, "DTO", domain.Name, $"{domain.Name}DTO.cs");
     }
 
     /// <summary>
-    /// 创建树列表数据传输模型
+    /// 渲染模板
     /// </summary>
+    /// <param name="template"></param>
     /// <param name="context"></param>
     /// <param name="domain"></param>
-    private async Task GeneratorTreeListDTOModelAsync(GeneratorCodeContext context, DomainModel domain)
+    /// <param name="targetDomain"></param>
+    /// <returns></returns>
+    private static string RenderTemplate(Template template, GeneratorCodeContext context, DomainModel domain, DomainModel? targetDomain)
     {
-        if (!(domain.IsTreeDomain && !domain.HasAttribute<EmptyTreeAttribute>()) || domain.HasAttribute<NotListDTOAttribute>()) return;
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Abstractions.DTO.{domain.Name}");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}树列表数据传输模型");
-        codeContent.AppendLine($"    /// </summary>");
-        codeContent.AppendLine($"    public partial class {domain.Name}TreeListDTO : {domain.Name}ListDTO, ITreeDTO<{domain.Name}TreeListDTO>");
-        codeContent.AppendLine($"    {{");
-        codeContent.AppendLine($"        /// <summary>");
-        codeContent.AppendLine($"        /// 子级");
-        codeContent.AppendLine($"        /// </summary>");
-        codeContent.AppendLine($"        public List<{domain.Name}TreeListDTO> Children {{ get; set; }} = [];");
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleAbstractionsMGCPath, "DTO", domain.Name, $"{domain.Name}TreeListDTO.cs");
-    }
+        var domainViewModel = new DomainViewModel
+        {
+            Name = domain.Name,
+            Annotation = domain.Annotation
+        };
 
-    /// <summary>
-    /// 创建数据传输模型属性
-    /// </summary>
-    /// <param name="codeContent"></param>
-    /// <param name="property"></param>
-    private void GeneratorDTOModelProperty(StringBuilder codeContent, PropertyModel property)
-    {
-        if (property.Annotation is not null && !string.IsNullOrWhiteSpace(property.Annotation))
+        if (targetDomain != null)
         {
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// {property.Annotation}");
-            codeContent.AppendLine($"        /// </summary>");
+            domainViewModel.Properties = [.. targetDomain.Properties
+                .Where(p => !p.HasAttribute<NotDTOAttribute>() || !p.HasAttribute<NotListDTOAttribute>())
+                .Select(p => new PropertyViewModel
+                {
+                    Name = p.Name,
+                    PredefinedType = p.PredefinedType,
+                    Annotation = p.Annotation,
+                    Initializer = p.Initializer,
+                    CanNull = p.CanNull,
+                    IncludeInListDto = !p.HasAttribute<NotDTOAttribute>() && !p.HasAttribute<NotListDTOAttribute>(),
+                    IncludeInDto = p.HasAttribute<NotDTOAttribute>() && !p.HasAttribute<NotListDTOAttribute>(),
+                    VerificationAttributesCode = p.GetVerificationAttributesCode()
+                })];
         }
-        string? queryAttributesCode = property.GetVerificationAttributesCode();
-        if (queryAttributesCode is not null && !string.IsNullOrWhiteSpace(queryAttributesCode))
+
+        ScriptObject scriptObject = new()
         {
-            codeContent.AppendLine($"        {queryAttributesCode}");
-        }
-        codeContent.AppendLine($"        public {property.PredefinedType} {property.Name} {{ get; set; }}");
-        if (property.Initializer is not null && !string.IsNullOrWhiteSpace(property.Initializer))
+            { "context", context },
+            { "domain", domainViewModel }
+        };
+
+        TemplateContext templateContext = new()
         {
-            codeContent.Insert(codeContent.Length - 2, $" = {property.Initializer};");
-        }
-        if (property.HasAttribute<DTOTextAttribute>())
-        {
-            if (property.Annotation is not null && !string.IsNullOrWhiteSpace(property.Annotation))
-            {
-                codeContent.AppendLine($"        /// <summary>");
-                codeContent.AppendLine($"        /// {property.Annotation}文本");
-                codeContent.AppendLine($"        /// </summary>");
-            }
-            if (property.CanNull)
-            {
-                codeContent.AppendLine($"        public string? {property.Name}Text => {property.Name}?.GetDescriptionOrNull();");
-            }
-            else
-            {
-                codeContent.AppendLine($"        public string {property.Name}Text => {property.Name}.GetDescription();");
-            }
-        }
+            MemberRenamer = member => member.Name,
+            LoopLimit = int.MaxValue,
+            StrictVariables = false
+        };
+        templateContext.PushGlobal(scriptObject);
+
+        return template.Render(templateContext);
     }
 }

@@ -8,22 +8,26 @@
 /// <para><b>应用于属性时的影响：</b></para>
 /// <list type="bullet">
 /// <item>
-/// <description>在 <see cref="DefaultPlug.RequesetModelGeneratorCodePlug.GeneratorTreeQueryRequestModelAsync"/> 中：
+/// <description>在 <see cref="DefaultPlug.TreeGeneratorCodePlug.GeneratorTreeQueryRequestModelAsync"/> 中：
 /// 生成的树形查询请求模型会包含该分组属性作为查询条件</description>
 /// </item>
 /// <item>
-/// <description>在 <see cref="DefaultPlug.ServicesModelGeneratorCodePlug.GeneratorTreeQueryModelAsync"/> 中：
+/// <description>在 <see cref="DefaultPlug.TreeGeneratorCodePlug.GeneratorTreeQueryModelAsync"/> 中：
 /// 生成的树形查询服务模型会包含该分组属性，并添加 [Equal] 特性用于精确查询</description>
 /// </item>
 /// <item>
-/// <description>在 <see cref="DefaultPlug.ServicesGeneratorCodePlug.GeneratorServiceImplsCodeAsync"/> 中：
-/// ExchangeParentAsync 和 ExchangeIndexAsync 方法会将分组属性名称传递给辅助方法，确保树形操作在同一分组内进行</description>
+/// <description>在 <see cref="DefaultPlug.TreeGeneratorCodePlug.GeneratorServiceImplsTreeCodeAsync"/> 中：
+/// ExchangeParentAsync 方法会将分组属性名称传递给辅助方法，确保树形操作在同一分组内进行</description>
+/// </item>
+/// <item>
+/// <description>在 <see cref="DefaultPlug.IndexGeneratorCodePlug.GeneratorServiceImplsIndexCodeAsync"/> 中：
+/// 当领域同时为 IIndexDomain 时，ExchangeIndexAsync 会将 TreeGroup 属性名称传递给辅助方法，确保位序交换/父级交换在同一分组内进行</description>
 /// </item>
 /// </list>
 /// <para><b>前置条件：</b></para>
 /// <list type="bullet">
 /// <item><description>领域模型必须实现了 ITreeDomain 接口（包含 ParentID 属性）</description></item>
-/// <item><description>不能与 EmptyTreeAttribute 同时使用（EmptyTreeAttribute 会禁用所有树形功能）</description></item>
+/// <item><description>当生成器启用 Tree 相关代码生成时，此特性才会生效</description></item>
 /// <item><description>一个领域模型只能有一个属性标记为 TreeGroupAttribute</description></item>
 /// </list>
 /// <para><b>典型使用场景：</b></para>

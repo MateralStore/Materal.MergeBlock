@@ -23,10 +23,6 @@
 /// <description>在 <see cref="DefaultPlug.ServicesModelGeneratorCodePlug.GeneratorEditModelAsync"/> 中：
 /// 标记的属性会被包含在 Edit{DomainName}Model 类中，并添加 [LoginUserID] 特性标记</description>
 /// </item>
-/// <item>
-/// <description>在 <see cref="DefaultPlug.RequesetModelGeneratorCodePlug.GeneratorOperationalModelProperty"/> 中：
-/// 会为服务模型属性添加 [LoginUserID] 特性，用于后续自动填充</description>
-/// </item>
 /// </list>
 /// <para><b>自动填充机制：</b></para>
 /// <list type="bullet">

@@ -1,10 +1,179 @@
-﻿namespace Materal.MergeBlock.GeneratorCode.DefaultPlug;
+using Scriban;
+using Scriban.Runtime;
+
+namespace Materal.MergeBlock.GeneratorCode.DefaultPlug;
 
 /// <summary>
 /// 仓储代码生成插件
 /// </summary>
 public class RepositoryGeneratorCodePlug : IMergeBlockGeneratorCodePlug
 {
+    /// <summary>
+    /// 仓储视图模型（用于模板渲染）
+    /// </summary>
+    private class RepositoryViewModel
+    {
+        /// <summary>
+        /// 领域模型名称（如：User）
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 领域模型注释（XML文档注释中的summary内容）
+        /// </summary>
+        public string? Annotation { get; set; }
+
+        /// <summary>
+        /// 是否为视图
+        /// </summary>
+        public bool IsView { get; set; }
+
+        /// <summary>
+        /// 属性列表
+        /// </summary>
+        public List<PropertyViewModel> Properties { get; set; } = [];
+
+        /// <summary>
+        /// 是否有缓存特性
+        /// </summary>
+        public bool HasCacheAttribute { get; set; }
+    }
+
+    /// <summary>
+    /// 属性视图模型（用于模板渲染）
+    /// </summary>
+    private class PropertyViewModel
+    {
+        /// <summary>
+        /// 属性名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 属性注释
+        /// </summary>
+        public string? Annotation { get; set; }
+
+        /// <summary>
+        /// 是否可空
+        /// </summary>
+        public bool CanNull { get; set; }
+
+        /// <summary>
+        /// 列类型（如果有 ColumnType 特性）
+        /// </summary>
+        public string? ColumnType { get; set; }
+
+        /// <summary>
+        /// 最大长度（如果有 StringLength 特性）
+        /// </summary>
+        public string? MaxLength { get; set; }
+
+        /// <summary>
+        /// 预定义类型
+        /// </summary>
+        public string PredefinedType { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 首字母小写的名称
+        /// </summary>
+        public string NameToLowerFirstLetter => Name.Length > 0 ? char.ToLower(Name[0]) + Name[1..] : Name;
+    }
+
+    private static readonly string _entityConfigTemplate = @"
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Repository.EntityConfigs;
+/// <summary>
+/// {{domain.Annotation}}配置基类
+/// </summary>
+public class {{domain.Name}}ConfigBase : BaseEntityConfig<{{domain.Name}}>
+{
+    /// <summary>
+    /// 配置
+    /// </summary>
+    public override void Configure(EntityTypeBuilder<{{domain.Name}}> builder)
+    {
+        builder = BaseConfigure(builder);
+{{- if domain.IsView}}
+        builder.ToView(""{{domain.Name}}"");
+{{- else}}
+        builder.ToTable(m => m.HasComment(""{{domain.Annotation}}""));
+{{- end}}
+{{- for property in domain.Properties}}
+        builder.Property(e => e.{{property.Name}})
+{{- if !property.CanNull}}
+            .IsRequired()
+{{- end}}
+            .HasComment(""{{property.Annotation}}"")
+{{- if property.ColumnType}}
+            .HasColumnType({{property.ColumnType}})
+{{- end}}
+{{- if property.MaxLength}}
+            .HasMaxLength({{property.MaxLength}})
+{{- end}};
+{{- end}}
+    }
+}
+/// <summary>
+/// {{domain.Annotation}}配置类
+/// </summary>
+public partial class {{domain.Name}}Config : {{domain.Name}}ConfigBase { }
+";
+
+    private static readonly string _dbContextTemplate = @"
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Repository;
+/// <summary>
+/// {{context.ModuleName}}数据库上下文
+/// </summary>
+public sealed partial class {{context.ModuleName}}DBContext(DbContextOptions<{{context.ModuleName}}DBContext> options) : DbContext(options)
+{
+{{- for domain in context.Domains}}
+    /// <summary>
+    /// {{domain.Annotation}}
+    /// </summary>
+    public DbSet<{{domain.Name}}>? {{domain.Name}} { get; set; }
+{{- end}}
+    /// <summary>
+    /// 配置模型
+    /// </summary>
+    protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+}
+";
+
+    private static readonly string _iRepositoryTemplate = @"
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Repositories;
+/// <summary>
+/// {{domain.Annotation}}仓储
+/// </summary>
+{{if domain.HasCacheAttribute}}
+public partial interface I{{domain.Name}}Repository : I{{context.ModuleName}}CacheRepository<{{domain.Name}}>
+{{else}}
+public partial interface I{{domain.Name}}Repository : I{{context.ModuleName}}Repository<{{domain.Name}}>
+{{end}}
+{
+}
+";
+
+    private static readonly string _repositoryImplTemplate = @"
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Repository.Repositories;
+/// <summary>
+/// {{domain.Annotation}}仓储
+/// </summary>
+{{if domain.HasCacheAttribute}}
+public partial class {{domain.Name}}RepositoryImpl({{context.ModuleName}}DBContext dbContext, ICacheHelper cacheHelper) : {{context.ModuleName}}CacheRepositoryImpl<{{domain.Name}}>(dbContext, cacheHelper), I{{domain.Name}}Repository, IScopedDependency<I{{domain.Name}}Repository>
+{
+    /// <summary>
+    /// 获得所有缓存名称
+    /// </summary>
+    protected override string GetAllCacheName() => ""All{{domain.Name}}"";
+{{else}}
+public partial class {{domain.Name}}RepositoryImpl({{context.ModuleName}}DBContext dbContext) : {{context.ModuleName}}RepositoryImpl<{{domain.Name}}>(dbContext), I{{domain.Name}}Repository, IScopedDependency<I{{domain.Name}}Repository>
+{
+{{end}}
+}
+";
+
     /// <inheritdoc/>
     public Task BeforeExcuteAsync(GeneratorCodeContext context) => Task.CompletedTask;
 
@@ -34,59 +203,11 @@ public class RepositoryGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     private async Task GeneratorEntityConfigCodeAsync(GeneratorCodeContext context, DomainModel domain)
     {
         if (domain.HasAttribute<NotEntityConfigAttribute>()) return;
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"using Microsoft.EntityFrameworkCore.Metadata.Builders;");
-        codeContent.AppendLine($"");
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Repository.EntityConfigs");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}配置基类");
-        codeContent.AppendLine($"    /// </summary>");
-        codeContent.AppendLine($"    public class {domain.Name}ConfigBase : BaseEntityConfig<{domain.Name}>");
-        codeContent.AppendLine($"    {{");
-        codeContent.AppendLine($"        /// <summary>");
-        codeContent.AppendLine($"        /// 配置");
-        codeContent.AppendLine($"        /// </summary>");
-        codeContent.AppendLine($"        public override void Configure(EntityTypeBuilder<{domain.Name}> builder)");
-        codeContent.AppendLine($"        {{");
-        codeContent.AppendLine($"            builder = BaseConfigure(builder);");
-        if (domain.IsView)
-        {
-            codeContent.AppendLine($"            builder.ToView(\"{domain.Name}\");");
-        }
-        else
-        {
-            codeContent.AppendLine($"            builder.ToTable(m => m.HasComment(\"{domain.Annotation}\"));");
-        }
-        foreach (PropertyModel property in domain.Properties)
-        {
-            if (property.HasAttribute<NotEntityConfigAttribute>()) continue;
-            codeContent.AppendLine($"            builder.Property(e => e.{property.Name})");
-            if (!property.CanNull)
-            {
-                codeContent.AppendLine($"                .IsRequired()");
-            }
-            codeContent.AppendLine($"                .HasComment(\"{property.Annotation}\")");
-            AttributeArgumentModel? columnTypeArgument = property.GetAttribute<ColumnTypeAttribute>()?.GetAttributeArgument();
-            if (columnTypeArgument is not null)
-            {
-                codeContent.AppendLine($"                .HasColumnType({columnTypeArgument.Value})");
-            }
-            AttributeModel? attribute = property.GetAttribute<StringLengthAttribute>();
-            if (attribute is not null)
-            {
-                codeContent.AppendLine($"                .HasMaxLength({attribute.GetAttributeArgument()?.Value})");
-            }
-            codeContent.Insert(codeContent.Length - 2, ";");
-        }
-        codeContent.AppendLine($"        }}");
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}配置类");
-        codeContent.AppendLine($"    /// </summary>");
-        codeContent.AppendLine($"    public partial class {domain.Name}Config : {domain.Name}ConfigBase {{ }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleRepositoryMGCPath, "EntityConfigs", $"{domain.Name}Config.cs");
+
+        Template template = Template.Parse(_entityConfigTemplate);
+        string codeContent = RenderTemplate(template, context, domain, forEntityConfig: true);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleRepositoryMGCPath, "EntityConfigs", $"{domain.Name}Config.cs");
     }
 
     /// <summary>
@@ -95,29 +216,10 @@ public class RepositoryGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     /// <param name="context"></param>
     private async Task GeneratorDBContextCodeAsync(GeneratorCodeContext context)
     {
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Repository");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {context.ModuleName}数据库上下文");
-        codeContent.AppendLine($"    /// </summary>");
-        codeContent.AppendLine($"    public sealed partial class {context.ModuleName}DBContext(DbContextOptions<{context.ModuleName}DBContext> options) : DbContext(options)");
-        codeContent.AppendLine($"    {{");
-        foreach (DomainModel domain in context.Domains)
-        {
-            if (domain.HasAttribute<NotInDBContextAttribute>()) continue;
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// {domain.Annotation}");
-            codeContent.AppendLine($"        /// </summary>");
-            codeContent.AppendLine($"        public DbSet<{domain.Name}>? {domain.Name} {{ get; set; }}");
-        }
-        codeContent.AppendLine($"        /// <summary>");
-        codeContent.AppendLine($"        /// 配置模型");
-        codeContent.AppendLine($"        /// </summary>");
-        codeContent.AppendLine($"        protected override void OnModelCreating(ModelBuilder modelBuilder) => modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);");
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleRepositoryMGCPath, $"{context.ModuleName}DBContext.cs");
+        Template template = Template.Parse(_dbContextTemplate);
+        string codeContent = RenderTemplateForDBContext(template, context);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleRepositoryMGCPath, $"{context.ModuleName}DBContext.cs");
     }
 
     /// <summary>
@@ -128,45 +230,11 @@ public class RepositoryGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     private async Task GeneratorIRepositoryCodeAsync(GeneratorCodeContext context, DomainModel domain)
     {
         if (domain.HasAttribute<NotRepositoryAttribute>()) return;
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Abstractions.Repositories");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}仓储");
-        codeContent.AppendLine($"    /// </summary>");
-        if (domain.HasAttribute<CacheAttribute>())
-        {
-            codeContent.AppendLine($"    public partial interface I{domain.Name}Repository : I{context.ModuleName}CacheRepository<{domain.Name}>");
-        }
-        else
-        {
-            codeContent.AppendLine($"    public partial interface I{domain.Name}Repository : I{context.ModuleName}Repository<{domain.Name}>");
-        }
-        codeContent.AppendLine($"    {{");
-        if (domain.IsIndexDomain && !domain.HasAttribute<EmptyIndexAttribute>())
-        {
-            PropertyModel? indexGroupPropertyModel = domain.GetIndexGroupProperty();
-            if (indexGroupPropertyModel is null)
-            {
-                codeContent.AppendLine($"        /// <summary>");
-                codeContent.AppendLine($"        /// 获取最大位序");
-                codeContent.AppendLine($"        /// </summary>");
-                codeContent.AppendLine($"        /// <returns></returns>");
-                codeContent.AppendLine($"        Task<int> GetMaxIndexAsync();");
-            }
-            else
-            {
-                codeContent.AppendLine($"        /// <summary>");
-                codeContent.AppendLine($"        /// 获取最大位序");
-                codeContent.AppendLine($"        /// </summary>");
-                codeContent.AppendLine($"        /// <param name=\"{indexGroupPropertyModel.Name.ToLowerFirstLetter()}\"></param>");
-                codeContent.AppendLine($"        /// <returns></returns>");
-                codeContent.AppendLine($"        Task<int> GetMaxIndexAsync({indexGroupPropertyModel.PredefinedType} {indexGroupPropertyModel.Name.ToLowerFirstLetter()});");
-            }
-        }
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleAbstractionsMGCPath, "Repositories", $"I{domain.Name}Repository.cs");
+
+        Template template = Template.Parse(_iRepositoryTemplate);
+        string codeContent = RenderTemplate(template, context, domain);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleAbstractionsMGCPath, "Repositories", $"I{domain.Name}Repository.cs");
     }
 
     /// <summary>
@@ -177,54 +245,93 @@ public class RepositoryGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     private async Task GeneratorRepositoryImplCodeAsync(GeneratorCodeContext context, DomainModel domain)
     {
         if (domain.HasAttribute<NotRepositoryAttribute>()) return;
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Repository.Repositories");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}仓储");
-        codeContent.AppendLine($"    /// </summary>");
-        if (domain.HasAttribute<CacheAttribute>())
+
+        Template template = Template.Parse(_repositoryImplTemplate);
+        string codeContent = RenderTemplate(template, context, domain);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleRepositoryMGCPath, "Repositories", $"{domain.Name}RepositoryImpl.cs");
+    }
+
+    /// <summary>
+    /// 渲染模板
+    /// </summary>
+    /// <param name="template"></param>
+    /// <param name="context"></param>
+    /// <param name="domain"></param>
+    /// <param name="forEntityConfig">是否为实体配置模板</param>
+    /// <returns></returns>
+    private static string RenderTemplate(Template template, GeneratorCodeContext context, DomainModel domain, bool forEntityConfig = false)
+    {
+        var repositoryViewModel = new RepositoryViewModel
         {
-            codeContent.AppendLine($"    public partial class {domain.Name}RepositoryImpl({context.ModuleName}DBContext dbContext, ICacheHelper cacheHelper) : {context.ModuleName}CacheRepositoryImpl<{domain.Name}>(dbContext, cacheHelper), I{domain.Name}Repository, IScopedDependency<I{domain.Name}Repository>");
-            codeContent.AppendLine($"    {{");
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// 获得所有缓存名称");
-            codeContent.AppendLine($"        /// </summary>");
-            codeContent.AppendLine($"        protected override string GetAllCacheName() => \"All{domain.Name}\";");
+            Name = domain.Name,
+            Annotation = domain.Annotation,
+            IsView = domain.IsView,
+            HasCacheAttribute = domain.HasAttribute<CacheAttribute>()
+        };
+
+        if (forEntityConfig)
+        {
+            repositoryViewModel.Properties = [.. domain.Properties
+                .Where(p => !p.HasAttribute<NotEntityConfigAttribute>())
+                .Select(p => new PropertyViewModel
+                {
+                    Name = p.Name,
+                    Annotation = p.Annotation,
+                    CanNull = p.CanNull,
+                    ColumnType = p.GetAttribute<ColumnTypeAttribute>()?.GetAttributeArgument()?.Value,
+                    MaxLength = p.GetAttribute<StringLengthAttribute>()?.GetAttributeArgument()?.Value
+                })];
         }
-        else
+
+        ScriptObject scriptObject = new()
         {
-            codeContent.AppendLine($"    public partial class {domain.Name}RepositoryImpl({context.ModuleName}DBContext dbContext) : {context.ModuleName}RepositoryImpl<{domain.Name}>(dbContext), I{domain.Name}Repository, IScopedDependency<I{domain.Name}Repository>");
-            codeContent.AppendLine($"    {{");
-        }
-        if (domain.IsIndexDomain && !domain.HasAttribute<EmptyIndexAttribute>())
+            { "context", context },
+            { "domain", repositoryViewModel }
+        };
+
+        TemplateContext templateContext = new()
         {
-            PropertyModel? indexGroupPropertyModel = domain.GetIndexGroupProperty();
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// 获取最大位序");
-            codeContent.AppendLine($"        /// </summary>");
-            if (indexGroupPropertyModel is null)
+            MemberRenamer = member => member.Name,
+            LoopLimit = int.MaxValue,
+            StrictVariables = false
+        };
+        templateContext.PushGlobal(scriptObject);
+
+        return template.Render(templateContext);
+    }
+
+    /// <summary>
+    /// 渲染数据库上下文模板
+    /// </summary>
+    /// <param name="template"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    private static string RenderTemplateForDBContext(Template template, GeneratorCodeContext context)
+    {
+        var domains = context.Domains
+            .Where(d => !d.HasAttribute<NotInDBContextAttribute>())
+            .Select(d => new RepositoryViewModel
             {
-                codeContent.AppendLine($"        /// <returns></returns>");
-                codeContent.AppendLine($"        public async Task<int> GetMaxIndexAsync()");
-                codeContent.AppendLine($"        {{");
-                codeContent.AppendLine($"            if (!await DBSet.AnyAsync()) return -1;");
-                codeContent.AppendLine($"            int result = await DBSet.MaxAsync(m => m.Index);");
-            }
-            else
-            {
-                codeContent.AppendLine($"        /// <param name=\"{indexGroupPropertyModel.Name.ToLowerFirstLetter()}\"></param>");
-                codeContent.AppendLine($"        /// <returns></returns>");
-                codeContent.AppendLine($"        public async Task<int> GetMaxIndexAsync({indexGroupPropertyModel.PredefinedType} {indexGroupPropertyModel.Name.ToLowerFirstLetter()})");
-                codeContent.AppendLine($"        {{");
-                codeContent.AppendLine($"            if (!await DBSet.AnyAsync(m => m.{indexGroupPropertyModel.Name} == {indexGroupPropertyModel.Name.ToLowerFirstLetter()})) return -1;");
-                codeContent.AppendLine($"            int result = await DBSet.Where(m => m.{indexGroupPropertyModel.Name} == {indexGroupPropertyModel.Name.ToLowerFirstLetter()}).MaxAsync(m => m.Index);");
-            }
-            codeContent.AppendLine($"            return result;");
-            codeContent.AppendLine($"        }}");
-        }
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleRepositoryMGCPath, "Repositories", $"{domain.Name}RepositoryImpl.cs");
+                Name = d.Name,
+                Annotation = d.Annotation
+            })
+            .ToList();
+
+        ScriptObject scriptObject = new()
+        {
+            { "context", context },
+            { "context.Domains", domains }
+        };
+
+        TemplateContext templateContext = new()
+        {
+            MemberRenamer = member => member.Name,
+            LoopLimit = int.MaxValue,
+            StrictVariables = false
+        };
+        templateContext.PushGlobal(scriptObject);
+
+        return template.Render(templateContext);
     }
 }

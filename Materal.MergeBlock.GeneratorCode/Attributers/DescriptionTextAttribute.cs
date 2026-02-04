@@ -8,7 +8,7 @@
 /// <para><b>应用于属性时的影响：</b></para>
 /// <list type="bullet">
 /// <item>
-/// <description>在 <see cref="DefaultPlug.DTOGeneratorCodePlug.GeneratorDTOModelProperty"/> 中：
+/// <description>在 <see cref="DefaultPlug.DTOGeneratorCodePlug"/> 中：
 /// 会为标记的枚举属性自动生成一个 {PropertyName}Text 只读属性，返回枚举的 Description 特性值</description>
 /// </item>
 /// </list>

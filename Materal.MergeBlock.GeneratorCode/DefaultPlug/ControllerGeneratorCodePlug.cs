@@ -1,10 +1,75 @@
-﻿namespace Materal.MergeBlock.GeneratorCode.DefaultPlug;
+using Scriban;
+using Scriban.Runtime;
+
+namespace Materal.MergeBlock.GeneratorCode.DefaultPlug;
 
 /// <summary>
 /// 控制器代码生成插件
 /// </summary>
 public class ControllerGeneratorCodePlug : IMergeBlockGeneratorCodePlug
 {
+    /// <summary>
+    /// 控制器视图模型（用于模板渲染）
+    /// </summary>
+    private class ControllerViewModel
+    {
+        /// <summary>
+        /// 领域模型名称（如：User）
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 领域模型注释（XML文档注释中的summary内容）
+        /// </summary>
+        public string? Annotation { get; set; }
+
+        /// <summary>
+        /// 是否为空控制器（只有基本接口）
+        /// </summary>
+        public bool IsEmptyController { get; set; }
+
+        /// <summary>
+        /// 是否有服务特性
+        /// </summary>
+        public bool HasNotServiceAttribute { get; set; }
+    }
+
+    private static readonly string _iControllerTemplate = @"
+using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.DTO.{{domain.Name}};
+using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.RequestModel.{{domain.Name}};
+
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Controllers;
+
+/// <summary>
+/// {{domain.Annotation}}控制器
+/// </summary>
+public {{if domain.IsEmptyController}}partial interface I{{domain.Name}}Controller : IMergeBlockController{{else}}partial interface I{{domain.Name}}Controller : IMergeBlockController<Add{{domain.Name}}RequestModel, Edit{{domain.Name}}RequestModel, Query{{domain.Name}}RequestModel, {{domain.Name}}DTO, {{domain.Name}}ListDTO>{{end}}
+{
+}
+";
+
+    private static readonly string _controllerTemplate = @"
+using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.DTO.{{domain.Name}};
+using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.RequestModel.{{domain.Name}};
+using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Services.Models.{{domain.Name}};
+
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Application.Controllers;
+
+/// <summary>
+/// {{domain.Annotation}}控制器
+/// </summary>
+public {{if domain.IsEmptyController}}
+    {{- if domain.HasNotServiceAttribute}}
+partial class {{domain.Name}}Controller : {{context.ModuleName}}Controller, I{{domain.Name}}Controller
+    {{- else}}
+partial class {{domain.Name}}Controller : {{context.ModuleName}}Controller<I{{domain.Name}}Service>, I{{domain.Name}}Controller
+    {{- end}}
+{{else}}
+partial class {{domain.Name}}Controller : {{context.ModuleName}}Controller<Add{{domain.Name}}RequestModel, Edit{{domain.Name}}RequestModel, Query{{domain.Name}}RequestModel, Add{{domain.Name}}Model, Edit{{domain.Name}}Model, Query{{domain.Name}}Model, {{domain.Name}}DTO, {{domain.Name}}ListDTO, I{{domain.Name}}Service>, I{{domain.Name}}Controller
+{{end}}
+{
+}
+";
 
     /// <inheritdoc/>
     public Task BeforeExcuteAsync(GeneratorCodeContext context) => Task.CompletedTask;
@@ -30,54 +95,11 @@ public class ControllerGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     private async Task GeneratorIControllerCodeAsync(GeneratorCodeContext context, DomainModel domain)
     {
         if (domain.HasAttribute<NotControllerAttribute>()) return;
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"using {context.ProjectName}.{context.ModuleName}.Abstractions.DTO.{domain.Name};");
-        codeContent.AppendLine($"using {context.ProjectName}.{context.ModuleName}.Abstractions.RequestModel.{domain.Name};");
-        codeContent.AppendLine($"");
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Abstractions.Controllers");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}控制器");
-        codeContent.AppendLine($"    /// </summary>");
-        if (domain.HasAttribute<EmptyServiceAttribute, EmptyControllerAttribute>())
-        {
-            codeContent.AppendLine($"    public partial interface I{domain.Name}Controller : IMergeBlockController");
-        }
-        else
-        {
-            codeContent.AppendLine($"    public partial interface I{domain.Name}Controller : IMergeBlockController<Add{domain.Name}RequestModel, Edit{domain.Name}RequestModel, Query{domain.Name}RequestModel, {domain.Name}DTO, {domain.Name}ListDTO>");
-        }
-        codeContent.AppendLine($"    {{");
-        if (domain.IsIndexDomain && !domain.HasAttribute<EmptyIndexAttribute>())
-        {
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// 交换位序");
-            codeContent.AppendLine($"        /// </summary>");
-            codeContent.AppendLine($"        /// <param name=\"requestModel\"></param>");
-            codeContent.AppendLine($"        /// <returns></returns>");
-            codeContent.AppendLine($"        [HttpPut]");
-            codeContent.AppendLine($"        Task<ResultModel> ExchangeIndexAsync(ExchangeIndexRequestModel requestModel);");
-        }
-        if (domain.IsTreeDomain && !domain.HasAttribute<EmptyTreeAttribute>())
-        {
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// 更改父级");
-            codeContent.AppendLine($"        /// </summary>");
-            codeContent.AppendLine($"        /// <param name=\"requestModel\"></param>");
-            codeContent.AppendLine($"        /// <returns></returns>");
-            codeContent.AppendLine($"        [HttpPut]");
-            codeContent.AppendLine($"        Task<ResultModel> ExchangeParentAsync(ExchangeParentRequestModel requestModel);");
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// 查询树列表");
-            codeContent.AppendLine($"        /// </summary>");
-            codeContent.AppendLine($"        /// <param name=\"requestModel\"></param>");
-            codeContent.AppendLine($"        /// <returns></returns>");
-            codeContent.AppendLine($"        [HttpPost]");
-            codeContent.AppendLine($"        Task<ResultModel<List<{domain.Name}TreeListDTO>>> GetTreeListAsync(Query{domain.Name}TreeListRequestModel requestModel);");
-        }
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleAbstractionsMGCPath, "Controllers", $"I{domain.Name}Controller.cs");
+
+        Template template = Template.Parse(_iControllerTemplate);
+        string codeContent = RenderTemplate(template, context, domain);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleAbstractionsMGCPath, "Controllers", $"I{domain.Name}Controller.cs");
     }
 
     /// <summary>
@@ -88,76 +110,44 @@ public class ControllerGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     private async Task GeneratorControllersCodeAsync(GeneratorCodeContext context, DomainModel domain)
     {
         if (domain.HasAttribute<NotControllerAttribute>()) return;
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"using {context.ProjectName}.{context.ModuleName}.Abstractions.DTO.{domain.Name};");
-        codeContent.AppendLine($"using {context.ProjectName}.{context.ModuleName}.Abstractions.RequestModel.{domain.Name};");
-        codeContent.AppendLine($"using {context.ProjectName}.{context.ModuleName}.Abstractions.Services.Models.{domain.Name};");
-        codeContent.AppendLine($"");
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Application.Controllers");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}控制器");
-        codeContent.AppendLine($"    /// </summary>");
-        if (domain.HasAttribute<EmptyServiceAttribute, EmptyControllerAttribute>())
+
+        Template template = Template.Parse(_controllerTemplate);
+        string codeContent = RenderTemplate(template, context, domain);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleApplicationMGCPath, "Controllers", $"{domain.Name}Controller.cs");
+    }
+
+    /// <summary>
+    /// 渲染模板
+    /// </summary>
+    /// <param name="template"></param>
+    /// <param name="context"></param>
+    /// <param name="domain"></param>
+    /// <returns></returns>
+    private static string RenderTemplate(Template template, GeneratorCodeContext context, DomainModel domain)
+    {
+        var controllerViewModel = new ControllerViewModel
         {
-            if (domain.HasAttribute<NotServiceAttribute>())
-            {
-                codeContent.AppendLine($"    public partial class {domain.Name}Controller : {context.ModuleName}Controller, I{domain.Name}Controller");
-            }
-            else
-            {
-                codeContent.AppendLine($"    public partial class {domain.Name}Controller : {context.ModuleName}Controller<I{domain.Name}Service>, I{domain.Name}Controller");
-            }
-        }
-        else
+            Name = domain.Name,
+            Annotation = domain.Annotation,
+            IsEmptyController = domain.HasAttribute<EmptyServiceAttribute, EmptyControllerAttribute>(),
+            HasNotServiceAttribute = domain.HasAttribute<NotServiceAttribute>()
+        };
+
+        ScriptObject scriptObject = new()
         {
-            codeContent.AppendLine($"    public partial class {domain.Name}Controller : {context.ModuleName}Controller<Add{domain.Name}RequestModel, Edit{domain.Name}RequestModel, Query{domain.Name}RequestModel, Add{domain.Name}Model, Edit{domain.Name}Model, Query{domain.Name}Model, {domain.Name}DTO, {domain.Name}ListDTO, I{domain.Name}Service>, I{domain.Name}Controller");
-        }
-        codeContent.AppendLine($"    {{");
-        if (domain.IsIndexDomain && !domain.HasAttribute<EmptyIndexAttribute>())
+            { "context", context },
+            { "domain", controllerViewModel }
+        };
+
+        TemplateContext templateContext = new()
         {
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// 交换位序");
-            codeContent.AppendLine($"        /// </summary>");
-            codeContent.AppendLine($"        /// <param name=\"requestModel\"></param>");
-            codeContent.AppendLine($"        /// <returns></returns>");
-            codeContent.AppendLine($"        [HttpPut]");
-            codeContent.AppendLine($"        public async Task<ResultModel> ExchangeIndexAsync(ExchangeIndexRequestModel requestModel)");
-            codeContent.AppendLine($"        {{");
-            codeContent.AppendLine($"            ExchangeIndexModel model = Mapper.Map<ExchangeIndexModel>(requestModel) ?? throw new {context.ProjectName}Exception(\"映射失败\");");
-            codeContent.AppendLine($"            await DefaultService.ExchangeIndexAsync(model);");
-            codeContent.AppendLine($"            return ResultModel.Success(\"交换位序成功\");");
-            codeContent.AppendLine($"        }}");
-        }
-        if (domain.IsTreeDomain && !domain.HasAttribute<EmptyTreeAttribute>())
-        {
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// 更改父级");
-            codeContent.AppendLine($"        /// </summary>");
-            codeContent.AppendLine($"        /// <param name=\"requestModel\"></param>");
-            codeContent.AppendLine($"        /// <returns></returns>");
-            codeContent.AppendLine($"        [HttpPut]");
-            codeContent.AppendLine($"        public async Task<ResultModel> ExchangeParentAsync(ExchangeParentRequestModel requestModel)");
-            codeContent.AppendLine($"        {{");
-            codeContent.AppendLine($"            ExchangeParentModel model = Mapper.Map<ExchangeParentModel>(requestModel) ?? throw new {context.ProjectName}Exception(\"映射失败\");");
-            codeContent.AppendLine($"            await DefaultService.ExchangeParentAsync(model);");
-            codeContent.AppendLine($"            return ResultModel.Success(\"更改父级成功\");");
-            codeContent.AppendLine($"        }}");
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// 查询树列表");
-            codeContent.AppendLine($"        /// </summary>");
-            codeContent.AppendLine($"        /// <param name=\"requestModel\"></param>");
-            codeContent.AppendLine($"        /// <returns></returns>");
-            codeContent.AppendLine($"        [HttpPost]");
-            codeContent.AppendLine($"        public async Task<ResultModel<List<{domain.Name}TreeListDTO>>> GetTreeListAsync(Query{domain.Name}TreeListRequestModel requestModel)");
-            codeContent.AppendLine($"        {{");
-            codeContent.AppendLine($"            Query{domain.Name}TreeListModel model = Mapper.Map<Query{domain.Name}TreeListModel>(requestModel) ?? throw new {context.ProjectName}Exception(\"映射失败\");");
-            codeContent.AppendLine($"            List<{domain.Name}TreeListDTO> result = await DefaultService.GetTreeListAsync(model);");
-            codeContent.AppendLine($"            return ResultModel<List<{domain.Name}TreeListDTO>>.Success(result, \"查询成功\");");
-            codeContent.AppendLine($"        }}");
-        }
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleApplicationMGCPath, "Controllers", $"{domain.Name}Controller.cs");
+            MemberRenamer = member => member.Name,
+            LoopLimit = int.MaxValue,
+            StrictVariables = false
+        };
+        templateContext.PushGlobal(scriptObject);
+
+        return template.Render(templateContext);
     }
 }

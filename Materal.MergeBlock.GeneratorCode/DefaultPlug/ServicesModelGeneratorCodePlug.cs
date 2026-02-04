@@ -1,10 +1,191 @@
-﻿namespace Materal.MergeBlock.GeneratorCode.DefaultPlug;
+using Scriban;
+using Scriban.Runtime;
+
+namespace Materal.MergeBlock.GeneratorCode.DefaultPlug;
 
 /// <summary>
 /// 服务模型代码生成插件
 /// </summary>
 public class ServicesModelGeneratorCodePlug : IMergeBlockGeneratorCodePlug
 {
+    /// <summary>
+    /// 服务模型视图模型（用于模板渲染）
+    /// </summary>
+    private class ServiceModelViewModel
+    {
+        /// <summary>
+        /// 领域模型名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 领域模型注释
+        /// </summary>
+        public string? Annotation { get; set; }
+
+        /// <summary>
+        /// 属性列表
+        /// </summary>
+        public List<PropertyViewModel> Properties { get; set; } = [];
+    }
+
+    /// <summary>
+    /// 属性视图模型（用于模板渲染）
+    /// </summary>
+    private class PropertyViewModel
+    {
+        /// <summary>
+        /// 属性名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 属性注释
+        /// </summary>
+        public string? Annotation { get; set; }
+
+        /// <summary>
+        /// 预定义类型
+        /// </summary>
+        public string PredefinedType { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 可空预定义类型
+        /// </summary>
+        public string NullPredefinedType { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 验证特性代码
+        /// </summary>
+        public string? VerificationAttributesCode { get; set; }
+
+        /// <summary>
+        /// 查询特性代码
+        /// </summary>
+        public string? QueryAttributesCode { get; set; }
+
+        /// <summary>
+        /// 是否有 LoginUserID 特性
+        /// </summary>
+        public bool HasLoginUserIDAttribute { get; set; }
+
+        /// <summary>
+        /// 初始化表达式
+        /// </summary>
+        public string? Initializer { get; set; }
+
+        /// <summary>
+        /// 是否有 Between 特性（用于查询模型）
+        /// </summary>
+        public bool HasBetweenAttribute { get; set; }
+    }
+
+    private static readonly string _addModelTemplate = @"
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Services.Models.{{domain.Name}};
+/// <summary>
+/// {{domain.Annotation}}添加模型
+/// </summary>
+public partial class Add{{domain.Name}}Model : IAddServiceModel
+{
+{{- for property in domain.Properties}}
+    {{- if property.Annotation}}
+    /// <summary>
+    /// {{property.Annotation}}
+    /// </summary>
+    {{- end}}
+    {{- if property.VerificationAttributesCode}}
+    {{property.VerificationAttributesCode}}
+    {{- end}}
+    {{- if property.HasLoginUserIDAttribute}}
+    [LoginUserID]
+    {{- end}}
+    public {{property.PredefinedType}} {{property.Name}} { get; set; }{{if property.Initializer}} = {{property.Initializer}};{{end}}
+{{- end}}
+}
+";
+
+    private static readonly string _editModelTemplate = @"
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Services.Models.{{domain.Name}};
+/// <summary>
+/// {{domain.Annotation}}修改模型
+/// </summary>
+public partial class Edit{{domain.Name}}Model : IEditServiceModel
+{
+    /// <summary>
+    /// 唯一标识
+    /// </summary>
+    [Required(ErrorMessage = ""唯一标识为空"")]
+    public Guid ID { get; set; }
+{{- for property in domain.Properties}}
+    {{- if property.Annotation}}
+    /// <summary>
+    /// {{property.Annotation}}
+    /// </summary>
+    {{- end}}
+    {{- if property.VerificationAttributesCode}}
+    {{property.VerificationAttributesCode}}
+    {{- end}}
+    {{- if property.HasLoginUserIDAttribute}}
+    [LoginUserID]
+    {{- end}}
+    public {{property.PredefinedType}} {{property.Name}} { get; set; }{{if property.Initializer}} = {{property.Initializer}};{{end}}
+{{- end}}
+}
+";
+
+    private static readonly string _queryModelTemplate = @"
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Services.Models.{{domain.Name}};
+/// <summary>
+/// {{domain.Annotation}}查询模型
+/// </summary>
+public partial class Query{{domain.Name}}Model : PageRequestModel, IQueryServiceModel
+{
+{{- for property in domain.Properties}}
+    {{- if property.HasBetweenAttribute}}
+        {{- if property.Annotation}}
+    /// <summary>
+    /// 最小{{property.Annotation}}
+    /// </summary>
+        {{- end}}
+    [GreaterThanOrEqual(""{{property.Name}}"")]
+    public {{property.NullPredefinedType}} Min{{property.Name}} { get; set; }
+        {{- if property.Annotation}}
+    /// <summary>
+    /// 最大{{property.Annotation}}
+    /// </summary>
+        {{- end}}
+    [LessThanOrEqual(""{{property.Name}}"")]
+    public {{property.NullPredefinedType}} Max{{property.Name}} { get; set; }
+    {{- else}}
+        {{- if property.Annotation}}
+    /// <summary>
+    /// {{property.Annotation}}
+    /// </summary>
+        {{- end}}
+        {{- if property.QueryAttributesCode}}
+    {{property.QueryAttributesCode}}
+        {{- end}}
+    public {{property.NullPredefinedType}} {{property.Name}} { get; set; }
+    {{- end}}
+{{- end}}
+    /// <summary>
+    /// 唯一标识组
+    /// </summary>
+    [Contains(""ID"")]
+    public List<Guid>? IDs { get; set; }
+    /// <summary>
+    /// 最小创建时间
+    /// </summary>
+    [GreaterThanOrEqual(""CreateTime"")]
+    public DateTime? MinCreateTime { get; set; }
+    /// <summary>
+    /// 最大创建时间
+    /// </summary>
+    [LessThanOrEqual(""CreateTime"")]
+    public DateTime? MaxCreateTime { get; set; }
+}
+";
+
     /// <inheritdoc/>
     public Task BeforeExcuteAsync(GeneratorCodeContext context) => Task.CompletedTask;
 
@@ -16,7 +197,6 @@ public class ServicesModelGeneratorCodePlug : IMergeBlockGeneratorCodePlug
             await GeneratorAddModelAsync(context, domain);
             await GeneratorEditModelAsync(context, domain);
             await GeneratorQueryModelAsync(context, domain, context.Domains);
-            await GeneratorTreeQueryModelAsync(context, domain);
         }
     }
 
@@ -31,22 +211,11 @@ public class ServicesModelGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     private async Task GeneratorAddModelAsync(GeneratorCodeContext context, DomainModel domain)
     {
         if (domain.HasAttribute<NotAddAttribute>()) return;
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Abstractions.Services.Models.{domain.Name}");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}添加模型");
-        codeContent.AppendLine($"    /// </summary>");
-        codeContent.AppendLine($"    public partial class Add{domain.Name}Model : IAddServiceModel");
-        codeContent.AppendLine($"    {{");
-        foreach (PropertyModel property in domain.Properties)
-        {
-            if (property.HasAttribute<NotAddAttribute>()) continue;
-            GeneratorOperationalModelProperty(codeContent, property);
-        }
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleAbstractionsMGCPath, "Services", "Models", domain.Name, $"Add{domain.Name}Model.cs");
+
+        Template template = Template.Parse(_addModelTemplate);
+        string codeContent = RenderTemplate(template, context, domain, forAddModel: true);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleAbstractionsMGCPath, "Services", "Models", domain.Name, $"Add{domain.Name}Model.cs");
     }
 
     /// <summary>
@@ -57,27 +226,11 @@ public class ServicesModelGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     private async Task GeneratorEditModelAsync(GeneratorCodeContext context, DomainModel domain)
     {
         if (domain.HasAttribute<NotEditAttribute>()) return;
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Abstractions.Services.Models.{domain.Name}");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}修改模型");
-        codeContent.AppendLine($"    /// </summary>");
-        codeContent.AppendLine($"    public partial class Edit{domain.Name}Model : IEditServiceModel");
-        codeContent.AppendLine($"    {{");
-        codeContent.AppendLine($"        /// <summary>");
-        codeContent.AppendLine($"        /// 唯一标识");
-        codeContent.AppendLine($"        /// </summary>");
-        codeContent.AppendLine($"        [Required(ErrorMessage = \"唯一标识为空\")]");
-        codeContent.AppendLine($"        public Guid ID {{ get; set; }}");
-        foreach (PropertyModel property in domain.Properties)
-        {
-            if (property.HasAttribute<NotEditAttribute>()) continue;
-            GeneratorOperationalModelProperty(codeContent, property);
-        }
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleAbstractionsMGCPath, "Services", "Models", domain.Name, $"Edit{domain.Name}Model.cs");
+
+        Template template = Template.Parse(_editModelTemplate);
+        string codeContent = RenderTemplate(template, context, domain, forEditModel: true);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleAbstractionsMGCPath, "Services", "Models", domain.Name, $"Edit{domain.Name}Model.cs");
     }
 
     /// <summary>
@@ -90,132 +243,91 @@ public class ServicesModelGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     {
         if (domain.HasAttribute<NotQueryAttribute>()) return;
         DomainModel targetDomain = domain.GetQueryDomain(domains);
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Abstractions.Services.Models.{domain.Name}");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}查询模型");
-        codeContent.AppendLine($"    /// </summary>");
-        codeContent.AppendLine($"    public partial class Query{domain.Name}Model : PageRequestModel, IQueryServiceModel");
-        codeContent.AppendLine($"    {{");
-        foreach (PropertyModel property in targetDomain.Properties)
-        {
-            if (domain.HasAttribute<NotQueryAttribute>() || !property.HasQueryAttribute) continue;
-            if (property.HasAttribute<BetweenAttribute>())
-            {
-                if (property.Annotation is not null && !string.IsNullOrWhiteSpace(property.Annotation))
-                {
-                    codeContent.AppendLine($"        /// <summary>");
-                    codeContent.AppendLine($"        /// 最小{property.Annotation}");
-                    codeContent.AppendLine($"        /// </summary>");
-                }
-                codeContent.AppendLine($"        [GreaterThanOrEqual(\"{property.Name}\")]");
-                codeContent.AppendLine($"        public {property.NullPredefinedType} Min{property.Name} {{ get; set; }}");
-                if (property.Annotation is not null && !string.IsNullOrWhiteSpace(property.Annotation))
-                {
-                    codeContent.AppendLine($"        /// <summary>");
-                    codeContent.AppendLine($"        /// 最大{property.Annotation}");
-                    codeContent.AppendLine($"        /// </summary>");
-                }
-                codeContent.AppendLine($"        [LessThanOrEqual(\"{property.Name}\")]");
-                codeContent.AppendLine($"        public {property.NullPredefinedType} Max{property.Name} {{ get; set; }}");
-            }
-            else
-            {
-                if (property.Annotation is not null && !string.IsNullOrWhiteSpace(property.Annotation))
-                {
-                    codeContent.AppendLine($"        /// <summary>");
-                    codeContent.AppendLine($"        /// {property.Annotation}");
-                    codeContent.AppendLine($"        /// </summary>");
-                }
-                string? queryAttributesCode = property.GetQueryAttributesCode();
-                if (queryAttributesCode is not null && !string.IsNullOrWhiteSpace(queryAttributesCode))
-                {
-                    codeContent.AppendLine($"        {queryAttributesCode}");
-                }
-                codeContent.AppendLine($"        public {property.NullPredefinedType} {property.Name} {{ get; set; }}");
-            }
-        }
-        codeContent.AppendLine($"        /// <summary>");
-        codeContent.AppendLine($"        /// 唯一标识组");
-        codeContent.AppendLine($"        /// </summary>");
-        codeContent.AppendLine($"        [Contains(\"ID\")]");
-        codeContent.AppendLine($"        public List<Guid>? IDs {{ get; set; }}");
-        codeContent.AppendLine($"        /// <summary>");
-        codeContent.AppendLine($"        /// 最小创建时间");
-        codeContent.AppendLine($"        /// </summary>");
-        codeContent.AppendLine($"        [GreaterThanOrEqual(\"CreateTime\")]");
-        codeContent.AppendLine($"        public DateTime? MinCreateTime {{ get; set; }}");
-        codeContent.AppendLine($"        /// <summary>");
-        codeContent.AppendLine($"        /// 最大创建时间");
-        codeContent.AppendLine($"        /// </summary>");
-        codeContent.AppendLine($"        [LessThanOrEqual(\"CreateTime\")]");
-        codeContent.AppendLine($"        public DateTime? MaxCreateTime {{ get; set; }}");
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleAbstractionsMGCPath, "Services", "Models", domain.Name, $"Query{domain.Name}Model.cs");
+
+        Template template = Template.Parse(_queryModelTemplate);
+        string codeContent = RenderTemplate(template, context, domain, targetDomain: targetDomain);
+
+        context.SaveAs(new StringBuilder(codeContent), context.ModuleAbstractionsMGCPath, "Services", "Models", domain.Name, $"Query{domain.Name}Model.cs");
     }
 
     /// <summary>
-    /// 创建树查询模型
+    /// 渲染模板
     /// </summary>
+    /// <param name="template"></param>
     /// <param name="context"></param>
     /// <param name="domain"></param>
-    private async Task GeneratorTreeQueryModelAsync(GeneratorCodeContext context, DomainModel domain)
+    /// <param name="forAddModel">是否为添加模型</param>
+    /// <param name="forEditModel">是否为编辑模型</param>
+    /// <param name="targetDomain">目标领域（用于查询模型）</param>
+    /// <returns></returns>
+    private static string RenderTemplate(
+        Template template,
+        GeneratorCodeContext context,
+        DomainModel domain,
+        bool forAddModel = false,
+        bool forEditModel = false,
+        DomainModel? targetDomain = null)
     {
-        if ((!domain.IsTreeDomain && !domain.HasAttribute<EmptyTreeAttribute>()) || domain.HasAttribute<NotQueryAttribute>()) return;
-        StringBuilder codeContent = new();
-        codeContent.AppendLine($"namespace {context.ProjectName}.{context.ModuleName}.Abstractions.Services.Models.{domain.Name}");
-        codeContent.AppendLine($"{{");
-        codeContent.AppendLine($"    /// <summary>");
-        codeContent.AppendLine($"    /// {domain.Annotation}树查询模型");
-        codeContent.AppendLine($"    /// </summary>");
-        codeContent.AppendLine($"    public partial class Query{domain.Name}TreeListModel : FilterModel");
-        codeContent.AppendLine($"    {{");
-        codeContent.AppendLine($"        /// <summary>");
-        codeContent.AppendLine($"        /// 父级唯一标识");
-        codeContent.AppendLine($"        /// </summary>");
-        codeContent.AppendLine($"        public Guid? ParentID {{ get; set; }}");
-        PropertyModel? treePropertyModel = domain.GetTreeGroupProperty();
-        if (treePropertyModel is not null)
+        var serviceModelViewModel = new ServiceModelViewModel
         {
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// {treePropertyModel.Annotation}");
-            codeContent.AppendLine($"        /// </summary>");
-            codeContent.AppendLine($"        [Equal]");
-            codeContent.AppendLine($"        public {treePropertyModel.NullPredefinedType} {treePropertyModel.Name} {{ get; set; }}");
+            Name = domain.Name,
+            Annotation = domain.Annotation
+        };
+
+        // 根据不同的模型类型过滤属性
+        if (forAddModel)
+        {
+            serviceModelViewModel.Properties = [.. domain.Properties
+                .Where(p => !p.HasAttribute<NotAddAttribute>())
+                .Select(p => ToPropertyViewModel(p))];
         }
-        codeContent.AppendLine($"    }}");
-        codeContent.AppendLine($"}}");
-        context.SaveAs(codeContent, context.ModuleAbstractionsMGCPath, "Services", "Models", domain.Name, $"Query{domain.Name}TreeListModel.cs");
+        else if (forEditModel)
+        {
+            serviceModelViewModel.Properties = [.. domain.Properties
+                .Where(p => !p.HasAttribute<NotEditAttribute>())
+                .Select(p => ToPropertyViewModel(p))];
+        }
+        else if (targetDomain is not null)
+        {
+            // 查询模型使用目标领域
+            serviceModelViewModel.Properties = [.. targetDomain.Properties
+                .Where(p => p.HasQueryAttribute && !domain.HasAttribute<NotQueryAttribute>())
+                .Select(p => ToPropertyViewModel(p, forQueryModel: true))];
+        }
+
+        ScriptObject scriptObject = new()
+        {
+            { "context", context },
+            { "domain", serviceModelViewModel }
+        };
+
+        TemplateContext templateContext = new()
+        {
+            MemberRenamer = member => member.Name,
+            LoopLimit = int.MaxValue,
+            StrictVariables = false
+        };
+        templateContext.PushGlobal(scriptObject);
+
+        return template.Render(templateContext);
     }
 
     /// <summary>
-    /// 创建操作模型属性
+    /// 将属性模型转换为视图模型
     /// </summary>
-    /// <param name="codeContent"></param>
     /// <param name="property"></param>
-    private void GeneratorOperationalModelProperty(StringBuilder codeContent, PropertyModel property)
+    /// <param name="forQueryModel">是否为查询模型</param>
+    /// <returns></returns>
+    private static PropertyViewModel ToPropertyViewModel(PropertyModel property, bool forQueryModel = false) => new()
     {
-        if (property.Annotation is not null && !string.IsNullOrWhiteSpace(property.Annotation))
-        {
-            codeContent.AppendLine($"        /// <summary>");
-            codeContent.AppendLine($"        /// {property.Annotation}");
-            codeContent.AppendLine($"        /// </summary>");
-        }
-        string? verificationAttributesCode = property.GetVerificationAttributesCode();
-        if (verificationAttributesCode is not null && !string.IsNullOrWhiteSpace(verificationAttributesCode))
-        {
-            codeContent.AppendLine($"        {verificationAttributesCode}");
-        }
-        if (property.HasAttribute<LoginUserIDAttribute>())
-        {
-            codeContent.AppendLine($"        [{nameof(LoginUserIDAttribute).RemoveAttributeSuffix()}]");
-        }
-        codeContent.AppendLine($"        public {property.PredefinedType} {property.Name} {{ get; set; }}");
-        if (property.Initializer is not null && !string.IsNullOrWhiteSpace(property.Initializer))
-        {
-            codeContent.Insert(codeContent.Length - 2, $" = {property.Initializer};");
-        }
-    }
+        Name = property.Name,
+        Annotation = property.Annotation,
+        PredefinedType = property.PredefinedType,
+        NullPredefinedType = property.NullPredefinedType,
+        VerificationAttributesCode = forQueryModel ? null : property.GetVerificationAttributesCode(),
+        QueryAttributesCode = forQueryModel ? property.GetQueryAttributesCode() : null,
+        HasLoginUserIDAttribute = property.HasAttribute<LoginUserIDAttribute>(),
+        Initializer = property.Initializer,
+        HasBetweenAttribute = property.HasAttribute<BetweenAttribute>()
+    };
 }

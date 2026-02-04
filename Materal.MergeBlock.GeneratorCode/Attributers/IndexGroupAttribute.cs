@@ -8,22 +8,22 @@
 /// <para><b>应用于属性时的影响：</b></para>
 /// <list type="bullet">
 /// <item>
-/// <description>在 <see cref="DefaultPlug.RepositoryGeneratorCodePlug.GeneratorIRepositoryCodeAsync"/> 中：
+/// <description>在 <see cref="DefaultPlug.IndexGeneratorCodePlug.GeneratorIRepositoryIndexCodeAsync"/> 中：
 /// 生成的 GetMaxIndexAsync 方法会包含该分组属性作为参数</description>
 /// </item>
 /// <item>
-/// <description>在 <see cref="DefaultPlug.RepositoryGeneratorCodePlug.GeneratorRepositoryImplCodeAsync"/> 中：
+/// <description>在 <see cref="DefaultPlug.IndexGeneratorCodePlug.GeneratorRepositoryImplIndexCodeAsync"/> 中：
 /// GetMaxIndexAsync 方法实现会根据分组属性过滤数据，返回该分组内的最大位序</description>
 /// </item>
 /// <item>
-/// <description>在 <see cref="DefaultPlug.ServicesGeneratorCodePlug.GeneratorServiceImplsCodeAsync"/> 中：
+/// <description>在 <see cref="DefaultPlug.IndexGeneratorCodePlug.GeneratorServiceImplsIndexCodeAsync"/> 中：
 /// ExchangeIndexAsync 方法会将分组属性名称传递给位序交换辅助方法，确保位序交换在同一分组内进行</description>
 /// </item>
 /// </list>
 /// <para><b>前置条件：</b></para>
 /// <list type="bullet">
 /// <item><description>领域模型必须实现了 IIndexDomain 接口（包含 Index 属性）</description></item>
-/// <item><description>不能与 EmptyIndexAttribute 同时使用（EmptyIndexAttribute 会禁用所有位序功能）</description></item>
+/// <item><description>当生成器启用 Index 相关代码生成时，此特性才会生效</description></item>
 /// <item><description>一个领域模型只能有一个属性标记为 IndexGroupAttribute</description></item>
 /// </list>
 /// <para><b>典型使用场景：</b></para>
