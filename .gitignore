@@ -3,7 +3,7 @@
 #自定义规则
 /[Nn]upkgs*
 /[Pp]ublish*
-*/[Dd]ocs*
+# */[Dd]ocs*
 # User-specific files
 *.suo
 *.user

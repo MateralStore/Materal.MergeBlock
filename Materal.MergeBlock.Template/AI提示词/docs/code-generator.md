@@ -30,11 +30,11 @@ MMB GeneratorCode --ProjectPath E:\Project\MyProject\MyProject.User
 
 代码生成工具按以下顺序执行：
 
-1. **清理**：删除所有 `MGC`（MergeBlock Generated Code）目录
-2. **刷新**：重新扫描项目文件
-3. **前置处理**：执行所有插件的 `BeforeExcuteAsync` 方法
-4. **代码生成**：执行所有插件的 `ExcuteAsync` 方法
-5. **后置处理**：执行所有插件的 `AfterExcuteAsync` 方法
+1. **清理**：删除所有 `MGC`（MergeBlock Generated Code）目录（包含 Core 与当前模块）
+2. **刷新**：扫描项目文件并建立上下文模型（Domain/Service/Controller/Enum）
+3. **前置处理**：依次执行所有插件的 `BeforeExcuteAsync`；每个插件执行后都会 `Refresh()`
+4. **代码生成**：依次执行所有插件的 `ExcuteAsync`；每个插件执行后都会 `Refresh()`
+5. **后置处理**：依次执行所有插件的 `AfterExcuteAsync`；每个插件执行后都会 `Refresh()`
 
 ## 生成的文件结构
 
@@ -64,17 +64,21 @@ MMB GeneratorCode --ProjectPath E:\Project\MyProject\MyProject.User
 
 ## 默认插件
 
-代码生成器包含以下插件，按顺序执行：
+代码生成器包含以下默认插件（位于 `Materal.MergeBlock.GeneratorCode` 程序集），并额外支持“脚本插件”（见下文“自定义插件/脚本插件”）。
+
+> 注意：默认插件来源于运行时的类型扫描，实际执行顺序来自插件加载顺序，**不要在设计上依赖插件顺序**。
 
 | 插件 | 功能 |
 |------|------|
 | `EnumControllerGeneratorCodePlug` | 生成枚举相关的控制器代码 |
-| `DTOGeneratorCodePlug` | 生成 DTO（数据传输对象）类 |
-| `RequesetModelGeneratorCodePlug` | 生成请求模型类 |
-| `ServicesModelGeneratorCodePlug` | 生成服务模型接口 |
-| `RepositoryGeneratorCodePlug` | 生成仓储层代码 |
-| `ServicesGeneratorCodePlug` | 生成服务层代码 |
-| `ControllerGeneratorCodePlug` | 生成控制器代码 |
+| `DTOGeneratorCodePlug` | 生成基础 DTO（ListDTO/DTO） |
+| `TreeGeneratorCodePlug` | 生成 Tree 相关扩展（TreeListDTO/TreeQuery/Tree Service/Tree Controller） |
+| `RequesetModelGeneratorCodePlug` | 生成基础请求模型（Add/Edit/Query） |
+| `ServicesModelGeneratorCodePlug` | 生成基础服务模型（Add/Edit/Query） |
+| `RepositoryGeneratorCodePlug` | 生成基础仓储（EntityConfig/DBContext/Repository Interface+Impl） |
+| `IndexGeneratorCodePlug` | 生成 Index 相关扩展（GetMaxIndexAsync/Index Service/Index Controller） |
+| `ServicesGeneratorCodePlug` | 生成基础服务接口与实现（CRUD） |
+| `ControllerGeneratorCodePlug` | 生成基础控制器接口与实现（CRUD） |
 | `ControllerAccessorsGeneratorCodePlug` | 生成控制器访问器代码 |
 | `ControllerMapperGeneratorCodePlug` | 生成控制器映射器代码 |
 
@@ -88,11 +92,34 @@ MMB GeneratorCode --ProjectPath E:\Project\MyProject\MyProject.User
 |------|------|
 | `{EntityName}ListDTO.cs` | 列表DTO，继承 `IListDTO`，包含基本字段（ID、CreateTime） |
 | `{EntityName}DTO.cs` | 单个DTO，继承 `{EntityName}ListDTO` 并实现 `IDTO`，包含详情字段 |
-| `{EntityName}TreeListDTO.cs` | 树形列表DTO（仅树形实体） |
 
 **跳过条件**：`[NotListDTO]`、`[NotDTO]`
 
-### 2. RequesetModelGeneratorCodePlug
+> 说明：`{EntityName}TreeListDTO.cs` 由 `TreeGeneratorCodePlug` 负责生成（Tree 功能拆分后不再由 `DTOGeneratorCodePlug` 生成）。
+
+### 2. TreeGeneratorCodePlug
+
+生成 Tree（树形）相关的扩展代码（仅当领域模型实现 `ITreeDomain`）：
+
+| 文件 | 说明 |
+|------|------|
+| `{EntityName}TreeListDTO.cs` | 树形列表DTO（实现 `ITreeDTO<T>`，包含 `Children`） |
+| `Query{EntityName}TreeListRequestModel.cs` | 树查询请求模型（`FilterModel`，包含 `ParentID` 与可选的分组属性） |
+| `Query{EntityName}TreeListModel.cs` | 树查询服务模型（`FilterModel`，包含 `ParentID` 与可选的分组属性） |
+| `I{EntityName}Service.Tree.cs` | 服务接口的 Tree 扩展（`ExchangeParentAsync`、`GetTreeListAsync`） |
+| `{EntityName}ServiceImpl.Tree.cs` | 服务实现的 Tree 扩展 |
+| `I{EntityName}Controller.Tree.cs` | 控制器接口的 Tree 扩展（`ExchangeParentAsync`、`GetTreeListAsync`） |
+| `{EntityName}Controller.Tree.cs` | 控制器实现的 Tree 扩展 |
+
+**跳过条件（Tree 细粒度控制）**：
+- `NotTreeDTO`：不生成 `TreeListDTO`
+- `NotTreeQuery`：不生成 TreeQuery（RequestModel/ServiceModel）
+- `NotTreeService`：不生成 Tree Service 扩展
+- `NotTreeController`：不生成 Tree Controller 扩展
+
+同时也受全局跳过特性影响：`NotDTO`、`NotListDTO`、`NotQuery`、`NotService`、`NotController` 等。
+
+### 3. RequesetModelGeneratorCodePlug
 
 生成请求模型类：
 
@@ -101,11 +128,12 @@ MMB GeneratorCode --ProjectPath E:\Project\MyProject\MyProject.User
 | `Add{EntityName}RequestModel.cs` | 添加请求模型 | `IAddRequestModel` |
 | `Edit{EntityName}RequestModel.cs` | 编辑请求模型 | `IEditRequestModel` |
 | `Query{EntityName}RequestModel.cs` | 查询请求模型 | `PageRequestModel, IQueryRequestModel` |
-| `Query{EntityName}TreeListRequestModel.cs` | 树查询请求模型（仅树形实体） | `FilterModel` |
 
 **跳过条件**：`[NotAdd]`、`[NotEdit]`、`[NotQuery]`
 
-### 3. ServicesModelGeneratorCodePlug
+> 说明：`Query{EntityName}TreeListRequestModel.cs` 由 `TreeGeneratorCodePlug` 负责生成。
+
+### 4. ServicesModelGeneratorCodePlug
 
 生成服务层模型类：
 
@@ -114,9 +142,10 @@ MMB GeneratorCode --ProjectPath E:\Project\MyProject\MyProject.User
 | `Add{EntityName}Model.cs` | 添加模型 | `IAddServiceModel` |
 | `Edit{EntityName}Model.cs` | 编辑模型 | `IEditServiceModel` |
 | `Query{EntityName}Model.cs` | 查询模型 | `PageRequestModel, IQueryServiceModel` |
-| `Query{EntityName}TreeListModel.cs` | 树查询模型（仅树形实体） | `FilterModel` |
 
-### 4. RepositoryGeneratorCodePlug
+> 说明：`Query{EntityName}TreeListModel.cs` 由 `TreeGeneratorCodePlug` 负责生成。
+
+### 5. RepositoryGeneratorCodePlug
 
 生成仓储层代码：
 
@@ -129,7 +158,27 @@ MMB GeneratorCode --ProjectPath E:\Project\MyProject\MyProject.User
 
 **跳过条件**：`[NotEntityConfig]`、`[NotInDBContext]`、`[NotRepository]`
 
-### 5. ServicesGeneratorCodePlug
+### 6. IndexGeneratorCodePlug
+
+生成 Index（位序）相关的扩展代码（仅当领域模型实现 `IIndexDomain`）：
+
+| 文件 | 说明 |
+|------|------|
+| `I{EntityName}Service.Index.cs` | 服务接口的 Index 扩展（`ExchangeIndexAsync`） |
+| `{EntityName}ServiceImpl.Index.cs` | 服务实现的 Index 扩展 |
+| `I{EntityName}Repository.Index.cs` | 仓储接口的 Index 扩展（`GetMaxIndexAsync`，含可选分组参数） |
+| `{EntityName}RepositoryImpl.Index.cs` | 仓储实现的 Index 扩展 |
+| `I{EntityName}Controller.Index.cs` | 控制器接口的 Index 扩展（`ExchangeIndexAsync`） |
+| `{EntityName}Controller.Index.cs` | 控制器实现的 Index 扩展 |
+
+**跳过条件（Index 细粒度控制）**：
+- `NotIndexRepository`：不生成 `GetMaxIndexAsync`（Repository 扩展）
+- `NotIndexService`：不生成 `ExchangeIndexAsync`（Service 扩展）
+- `NotIndexController`：不生成 `ExchangeIndexAsync`（Controller 扩展）
+
+同时也受全局跳过特性影响：`NotRepository`、`NotService`、`NotController` 等。
+
+### 7. ServicesGeneratorCodePlug
 
 生成服务层代码：
 
@@ -140,12 +189,14 @@ MMB GeneratorCode --ProjectPath E:\Project\MyProject\MyProject.User
 
 **自动生成方法**：
 - 标准 CRUD：`AddAsync`、`EditAsync`、`DeleteAsync`、`GetInfoAsync`、`GetListAsync`
-- 位序实体：`ExchangeIndexAsync`（需 `[EmptyIndex]` 跳过）
-- 树形实体：`ExchangeParentAsync`、`GetTreeListAsync`（需 `[EmptyTree]` 跳过）
+
+> 说明：Tree/Index 的扩展方法已从基础服务生成中拆分：
+> - `ExchangeIndexAsync` 由 `IndexGeneratorCodePlug` 生成到 `I{EntityName}Service.Index.cs` / `{EntityName}ServiceImpl.Index.cs`
+> - `ExchangeParentAsync`、`GetTreeListAsync` 由 `TreeGeneratorCodePlug` 生成到 `I{EntityName}Service.Tree.cs` / `{EntityName}ServiceImpl.Tree.cs`
 
 **跳过条件**：`[NotService]`、`[EmptyService]`
 
-### 6. ControllerGeneratorCodePlug
+### 8. ControllerGeneratorCodePlug
 
 生成控制器层代码：
 
@@ -163,13 +214,14 @@ MMB GeneratorCode --ProjectPath E:\Project\MyProject\MyProject.User
 | `DeleteAsync` | DELETE | `api/{entity}/delete?id={id}` | 删除 |
 | `GetInfoAsync` | GET | `api/{entity}/getinfo?id={id}` | 获取单个 |
 | `GetListAsync` | POST | `api/{entity}/getlist` | 获取列表 |
-| `ExchangeIndexAsync` | PUT | `api/{entity}/exchangeindex` | 交换位序（位序实体） |
-| `ExchangeParentAsync` | PUT | `api/{entity}/exchangeparent` | 更改父级（树形实体） |
-| `GetTreeListAsync` | POST | `api/{entity}/gettreelist` | 查询树列表（树形实体） |
+
+> 说明：Tree/Index 的控制器端点已拆分到对应插件的 partial 文件中：
+> - Index：`ExchangeIndexAsync` 由 `IndexGeneratorCodePlug` 生成到 `I{EntityName}Controller.Index.cs` / `{EntityName}Controller.Index.cs`
+> - Tree：`ExchangeParentAsync`、`GetTreeListAsync` 由 `TreeGeneratorCodePlug` 生成到 `I{EntityName}Controller.Tree.cs` / `{EntityName}Controller.Tree.cs`
 
 **跳过条件**：`[NotController]`、`[EmptyController]`
 
-### 7. EnumControllerGeneratorCodePlug
+### 9. EnumControllerGeneratorCodePlug
 
 生成枚举控制器代码，输出 `EnumsController.cs`，提供获取所有枚举值的 API。
 
@@ -212,13 +264,20 @@ public class EnumValue
 
 **使用场景**：客户端需要动态获取枚举选项列表时调用，无需手动编写 API。
 
-### 8. ControllerAccessorsGeneratorCodePlug
+### 10. ControllerAccessorsGeneratorCodePlug
 
 生成控制器访问器代码，用于服务间调用。
 
-### 9. ControllerMapperGeneratorCodePlug
+### 11. ControllerMapperGeneratorCodePlug
 
 根据服务方法上的 `[MapperController]` 特性生成映射控制器代码。
+
+`MapperController` 支持两种常见权限控制方式：
+
+- 匿名访问：`[MapperController(MapperType.Get, IsAllowAnonymous = true)]` → 生成 `[HttpGet, AllowAnonymous]`
+- 授权策略：`[MapperController(MapperType.Get, Policy = "AdminOnly")]` → 生成 `[HttpGet, Authorize(Policy = "AdminOnly")]`
+
+> 规则：当 `IsAllowAnonymous = true` 时，会生成 `AllowAnonymous`，并忽略 `Policy`。
 
 ## 特性控制生成
 
@@ -228,7 +287,7 @@ public class EnumValue
 |------|------|-----------|
 | `[NotAdd]` | 不生成 Add 相关代码 | RequestModel, ServicesModel |
 | `[NotEdit]` | 不生成 Edit 相关代码 | RequestModel, ServicesModel |
-| `[NotQuery]` | 不生成 Query 相关代码 | RequestModel, ServicesModel, DTO |
+| `[NotQuery]` | 不生成 Query 相关代码 | RequestModel, ServicesModel, TreeGeneratorCodePlug |
 | `[NotService]` | 不生成服务层代码 | Services |
 | `[NotController]` | 不生成控制器层代码 | Controller |
 | `[NotRepository]` | 不生成仓储层代码 | Repository |
@@ -238,8 +297,13 @@ public class EnumValue
 | `[NotInDBContext]` | 不在 DbContext 中生成 | Repository |
 | `[EmptyService]` | 生成空白服务（无 CRUD） | Services |
 | `[EmptyController]` | 生成空白控制器（无 CRUD） | Controller |
-| `[EmptyTree]` | 树形实体不生成树相关代码 | Services, Controller |
-| `[EmptyIndex]` | 位序实体不生成位序交换代码 | Services, Controller |
+| `[NotTreeController]` | Tree 实体不生成 Tree Controller 扩展 | TreeGeneratorCodePlug |
+| `[NotTreeService]` | Tree 实体不生成 Tree Service 扩展 | TreeGeneratorCodePlug |
+| `[NotTreeQuery]` | Tree 实体不生成 TreeQuery（RequestModel/ServiceModel） | TreeGeneratorCodePlug |
+| `[NotTreeDTO]` | Tree 实体不生成 TreeListDTO | TreeGeneratorCodePlug |
+| `[NotIndexController]` | Index 实体不生成 Index Controller 扩展 | IndexGeneratorCodePlug |
+| `[NotIndexService]` | Index 实体不生成 Index Service 扩展 | IndexGeneratorCodePlug |
+| `[NotIndexRepository]` | Index 实体不生成 Index Repository 扩展（GetMaxIndexAsync） | IndexGeneratorCodePlug |
 | `[Cache]` | 使用缓存仓储 | Repository |
 
 ### 属性级别特性
@@ -698,6 +762,27 @@ public interface IMergeBlockGeneratorCodePlug
 | `EnumControllerGeneratorCodePlug` | 后置处理 |
 | `ControllerAccessorsGeneratorCodePlug` | 后置处理 |
 | 其他插件 | 执行阶段 |
+
+## 自定义插件/脚本插件
+
+除程序集内置的默认插件外，代码生成器还支持在项目目录中编写“脚本插件”（同样实现 `IMergeBlockGeneratorCodePlug`），运行时会被自动发现、动态编译并加入执行列表。
+
+### 扫描目录
+
+生成器会递归扫描以下目录中的 `*.cs` 文件（会跳过 `Debug/`、`Obj/` 等目录）：
+
+- 核心：`{ProjectName}.Core.Abstractions` / `{ProjectName}.Core.Repository` / `{ProjectName}.Core.Application`
+- 模块：`{ProjectName}.{ModuleName}.Abstractions` / `{ProjectName}.{ModuleName}.Repository` / `{ProjectName}.{ModuleName}.Application`
+
+### 加载规则
+
+- 若某个 `.cs` 文件中存在实现 `IMergeBlockGeneratorCodePlug` 的类，则视为脚本插件。
+- 脚本插件会使用 Roslyn 动态编译（引用当前 AppDomain 已加载的程序集）。
+- 编译失败会直接中断本次生成并抛出错误信息。
+
+### 执行顺序
+
+脚本插件会追加在默认插件之后执行；同样**不建议依赖执行顺序**，更推荐通过生成到不同的 partial 文件来解耦。
 
 ## 上下文对象
 

@@ -34,6 +34,11 @@ public class ControllerMapperGeneratorCodePlug : IMergeBlockGeneratorCodePlug
         public bool IsAllowAnonymous { get; set; }
 
         /// <summary>
+        /// 授权策略（用于生成 Authorize(Policy = ...)）
+        /// </summary>
+        public string? Policy { get; set; }
+
+        /// <summary>
         /// 返回类型（不含Task）
         /// </summary>
         public string NotTaskReturnType { get; set; } = string.Empty;
@@ -161,7 +166,11 @@ public partial interface I{{service.DomainName}}Controller : IMergeBlockControll
 {{- if method.IsAllowAnonymous}}
     [Http{{method.HttpMethod}}, AllowAnonymous]
 {{- else}}
+{{- if method.Policy}}
+    [Http{{method.HttpMethod}}, Authorize(Policy = {{method.Policy}})]
+{{- else}}
     [Http{{method.HttpMethod}}]
+{{- end}}
 {{- end}}
 {{- if method.IsTaskReturnType}}
 {{- if method.IsPageReturnType}}
@@ -209,7 +218,11 @@ public partial class {{service.DomainName}}Controller
 {{- if method.IsAllowAnonymous}}
     [Http{{method.HttpMethod}}, AllowAnonymous]
 {{- else}}
+{{- if method.Policy}}
+    [Http{{method.HttpMethod}}, Authorize(Policy = {{method.Policy}})]
+{{- else}}
     [Http{{method.HttpMethod}}]
+{{- end}}
 {{- end}}
 {{- if method.IsTaskReturnType}}
 {{- if method.IsPageReturnType}}
@@ -217,6 +230,7 @@ public partial class {{service.DomainName}}Controller
     {
     {{- for arg in method.MapperArguments}}
         {{arg.PredefinedType}} {{arg.Name}} = Mapper.Map<{{arg.PredefinedType}}>({{arg.RequestName}}) ?? throw new {{context.ProjectName}}Exception(""映射失败"");
+        BindLoginUserID({{arg.Name}});
     {{- end}}
         (List<{{method.PageResultListType}}> result, RangeModel rangeInfo) = await DefaultService.{{method.Name}}({{method.UseArgumentsDeclaration}});
         return CollectionResultModel<{{method.PageResultListType}}>.Success(result, rangeInfo, ""{{method.Annotation}}成功"");
@@ -226,6 +240,7 @@ public partial class {{service.DomainName}}Controller
     {
     {{- for arg in method.MapperArguments}}
         {{arg.PredefinedType}} {{arg.Name}} = Mapper.Map<{{arg.PredefinedType}}>({{arg.RequestName}}) ?? throw new {{context.ProjectName}}Exception(""映射失败"");
+        BindLoginUserID({{arg.Name}});
     {{- end}}
         await DefaultService.{{method.Name}}({{method.UseArgumentsDeclaration}});
         return ResultModel.Success(""{{method.Annotation}}成功"");
@@ -235,6 +250,7 @@ public partial class {{service.DomainName}}Controller
     {
     {{- for arg in method.MapperArguments}}
         {{arg.PredefinedType}} {{arg.Name}} = Mapper.Map<{{arg.PredefinedType}}>({{arg.RequestName}}) ?? throw new {{context.ProjectName}}Exception(""映射失败"");
+        BindLoginUserID({{arg.Name}});
     {{- end}}
         {{method.NotTaskReturnType}} result = await DefaultService.{{method.Name}}({{method.UseArgumentsDeclaration}});
         return ResultModel<{{method.NotTaskReturnType}}>.Success(result, ""{{method.Annotation}}成功"");
@@ -247,6 +263,7 @@ public partial class {{service.DomainName}}Controller
     {
     {{- for arg in method.MapperArguments}}
         {{arg.PredefinedType}} {{arg.Name}} = Mapper.Map<{{arg.PredefinedType}}>({{arg.RequestName}}) ?? throw new {{context.ProjectName}}Exception(""映射失败"");
+        BindLoginUserID({{arg.Name}});
     {{- end}}
         (List<{{method.PageResultListType}}> result, RangeModel rangeInfo) = DefaultService.{{method.Name}}({{method.UseArgumentsDeclaration}});
         return CollectionResultModel<{{method.PageResultListType}}>.Success(result, rangeInfo, ""{{method.Annotation}}成功"");
@@ -256,6 +273,7 @@ public partial class {{service.DomainName}}Controller
     {
     {{- for arg in method.MapperArguments}}
         {{arg.PredefinedType}} {{arg.Name}} = Mapper.Map<{{arg.PredefinedType}}>({{arg.RequestName}}) ?? throw new {{context.ProjectName}}Exception(""映射失败"");
+        BindLoginUserID({{arg.Name}});
     {{- end}}
         DefaultService.{{method.Name}}({{method.UseArgumentsDeclaration}});
         return ResultModel.Success(""{{method.Annotation}}成功"");
@@ -265,6 +283,7 @@ public partial class {{service.DomainName}}Controller
     {
     {{- for arg in method.MapperArguments}}
         {{arg.PredefinedType}} {{arg.Name}} = Mapper.Map<{{arg.PredefinedType}}>({{arg.RequestName}}) ?? throw new {{context.ProjectName}}Exception(""映射失败"");
+        BindLoginUserID({{arg.Name}});
     {{- end}}
         {{method.NotTaskReturnType}} result = DefaultService.{{method.Name}}({{method.UseArgumentsDeclaration}});
         return ResultModel<{{method.NotTaskReturnType}}>.Success(result, ""{{method.Annotation}}成功"");
@@ -345,6 +364,11 @@ public partial class {{service.DomainName}}Controller
 
             string? isAllowAnonymous = attribute.GetAttributeArgument(nameof(MapperControllerAttribute.IsAllowAnonymous))?.Value;
             bool allowAnonymous = isAllowAnonymous is not null && isAllowAnonymous.Equals("true", StringComparison.OrdinalIgnoreCase);
+            string? policy = attribute.GetAttributeArgument(nameof(MapperControllerAttribute.Policy))?.Value;
+            if (policy is not null && (string.IsNullOrWhiteSpace(policy) || policy.Trim().Equals("\"\"", StringComparison.OrdinalIgnoreCase)))
+            {
+                policy = null;
+            }
 
             bool isPageReturn = IsPageReturnType(method.NotTaskReturnType, out PageReturnTypeModel pageReturn);
 
@@ -354,6 +378,7 @@ public partial class {{service.DomainName}}Controller
                 Annotation = method.Annotation?.Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ").Trim() ?? method.Name,
                 HttpMethod = httpMethod,
                 IsAllowAnonymous = allowAnonymous,
+                Policy = allowAnonymous ? null : policy,
                 NotTaskReturnType = method.NotTaskReturnType,
                 IsTaskReturnType = method.IsTaskReturnType,
                 HasReturnValue = method.ReturnType != "void",

@@ -20,6 +20,7 @@
 /// <list type="bullet">
 /// <item><description>自动添加对应的 HTTP 方法特性（[HttpGet]、[HttpPost] 等）</description></item>
 /// <item><description>如果 IsAllowAnonymous = true，会添加 [AllowAnonymous] 特性</description></item>
+/// <item><description>如果 Policy 不为空且 IsAllowAnonymous = false，会添加 [Authorize(Policy = "...")] 特性</description></item>
 /// <item><description>自动处理 RequestModel 到 ServiceModel 的映射</description></item>
 /// <item><description>自动调用 BindLoginUserID() 绑定登录用户ID</description></item>
 /// <item><description>自动包装返回结果为 ResultModel 或 ResultModel&lt;T&gt;</description></item>
@@ -56,6 +57,12 @@
 ///     Task&lt;OrderStatisticsDTO&gt; GetOrderStatisticsAsync(DateTime startDate, DateTime endDate);
 ///     
 ///     /// &lt;summary&gt;
+///     /// 获取后台统计（需要AdminOnly策略）
+///     /// &lt;/summary&gt;
+///     [MapperController(MapperType.Get, Policy = "AdminOnly")]
+///     Task&lt;AdminStatisticsDTO&gt; GetAdminStatisticsAsync();
+///     
+///     /// &lt;summary&gt;
 ///     /// 批量发货
 ///     /// &lt;/summary&gt;
 ///     [MapperController(MapperType.Post)]
@@ -76,6 +83,12 @@
 ///     /// &lt;/summary&gt;
 ///     [HttpGet, AllowAnonymous]
 ///     Task&lt;ResultModel&lt;OrderStatisticsDTO&gt;&gt; GetOrderStatisticsAsync(DateTime startDate, DateTime endDate);
+///     
+///     /// &lt;summary&gt;
+///     /// 获取后台统计（需要AdminOnly策略）
+///     /// &lt;/summary&gt;
+///     [HttpGet, Authorize(Policy = "AdminOnly")]
+///     Task&lt;ResultModel&lt;AdminStatisticsDTO&gt;&gt; GetAdminStatisticsAsync();
 ///     
 ///     /// &lt;summary&gt;
 ///     /// 批量发货
@@ -103,6 +116,13 @@
 ///         return ResultModel&lt;OrderStatisticsDTO&gt;.Success(result, "获取订单统计成功");
 ///     }
 ///     
+///     [HttpGet, Authorize(Policy = "AdminOnly")]
+///     public async Task&lt;ResultModel&lt;AdminStatisticsDTO&gt;&gt; GetAdminStatisticsAsync()
+///     {
+///         AdminStatisticsDTO result = await DefaultService.GetAdminStatisticsAsync();
+///         return ResultModel&lt;AdminStatisticsDTO&gt;.Success(result, "获取后台统计成功");
+///     }
+///     
 ///     [HttpPost]
 ///     public async Task&lt;ResultModel&gt; BatchShipAsync(BatchShipRequestModel model)
 ///     {
@@ -121,12 +141,18 @@ public sealed class MapperControllerAttribute(MapperType type) : Attribute
     /// HTTP 方法类型
     /// </summary>
     public MapperType Type { get; private set; } = type;
-    
+
     /// <summary>
     /// 是否允许匿名访问
     /// 设置为 true 时，生成的控制器方法会添加 [AllowAnonymous] 特性
     /// </summary>
     public bool IsAllowAnonymous { get; set; } = false;
+
+    /// <summary>
+    /// 授权策略
+    /// 设置后（且 IsAllowAnonymous = false），生成的控制器方法会添加 [Authorize(Policy = "...")] 特性
+    /// </summary>
+    public string? Policy { get; set; }
 }
 
 /// <summary>
@@ -140,25 +166,25 @@ public enum MapperType
     /// 用于查询操作，生成 [HttpGet] 特性
     /// </summary>
     Get,
-    
+
     /// <summary>
     /// HTTP POST 方法
     /// 用于创建操作，生成 [HttpPost] 特性
     /// </summary>
     Post,
-    
+
     /// <summary>
     /// HTTP PUT 方法
     /// 用于更新操作，生成 [HttpPut] 特性
     /// </summary>
     Put,
-    
+
     /// <summary>
     /// HTTP DELETE 方法
     /// 用于删除操作，生成 [HttpDelete] 特性
     /// </summary>
     Delete,
-    
+
     /// <summary>
     /// HTTP PATCH 方法
     /// 用于部分更新操作，生成 [HttpPatch] 特性

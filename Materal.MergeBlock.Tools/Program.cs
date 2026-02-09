@@ -1,4 +1,5 @@
-﻿using Materal.MergeBlock.GeneratorCode;
+﻿using Materal.Abstractions;
+using Materal.MergeBlock.GeneratorCode;
 using System.CommandLine;
 
 namespace Materal.MergeBlock.Tools;
@@ -13,8 +14,8 @@ public class Program
 #if DEBUG
         await GeneratorCodeAsync(@"E:\Project\GDB\YueHeShe\Server\YueHeShe.Main");
 #endif
-        Option<string> pathOption = new("--ProjectPath", "指定项目根路径");
-        pathOption.AddAlias("-p");
+        Option<string> pathOption = new("--ModulePath", "指定模块路径");
+        pathOption.AddAlias("-m");
         pathOption.IsRequired = false;
 
         Command generatorCodeCommand = new("GeneratorCode", "生成代码");
@@ -30,6 +31,19 @@ public class Program
     private static async Task GeneratorCodeAsync(string? projectPath)
     {
         projectPath = string.IsNullOrWhiteSpace(projectPath) ? Environment.CurrentDirectory : projectPath;
-        await PlugHost.RunAsync(projectPath);
+        try
+        {
+            await PlugHost.RunAsync(projectPath);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("代码生成成功！");
+            Console.ResetColor();
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"代码生成失败：{ex.GetErrorMessage()}");
+            Console.ResetColor();
+            throw;
+        }
     }
 }
