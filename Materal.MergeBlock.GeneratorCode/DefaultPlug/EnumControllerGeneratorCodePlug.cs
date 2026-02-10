@@ -26,7 +26,10 @@ public class EnumControllerGeneratorCodePlug : IMergeBlockGeneratorCodePlug
 
     private static readonly string _enumControllerTemplate = @"
 using Microsoft.AspNetCore.Authorization;
+using Materal.Utils.Enums;
+{{- if enums.size > 0 }}
 using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Enums;
+{{- end }}
 
 namespace {{context.ProjectName}}.{{context.ModuleName}}.Application.Controllers;
 

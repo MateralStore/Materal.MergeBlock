@@ -46,7 +46,7 @@ namespace MateralMergeBlockVSIX.ToolWindows
             try
             {
                 await VS.StatusBar.ShowMessageAsync("开始生成代码");
-                CommandHelper.ExecuteMMBCommand($"GeneratorCode -p {ProjectPath}\\{ProjectName}.{_moduleName}");
+                CommandHelper.ExecuteMMBCommand($"GeneratorCode --ModulePath {ProjectPath}\\{ProjectName}.{_moduleName}");
                 await VS.StatusBar.ShowMessageAsync("代码生成成功");
             }
             catch (Exception ex)
