@@ -48,6 +48,17 @@ public partial class EnumsController : {{context.ModuleName}}Controller
         return ResultModel<List<KeyValueModel<{{enumModel.Name}}>>>.Success(result, ""获取成功"");
     }
 {{- end }}
+
+    /// <summary>
+    /// 获取所有返回对象类型枚举
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    public ResultModel<List<KeyValueModel<global::Materal.Utils.Enums.ResultType>>> GetAllResultType()
+    {
+        List<KeyValueModel<global::Materal.Utils.Enums.ResultType>> result = KeyValueModel<global::Materal.Utils.Enums.ResultType>.GetAllCode();
+        return ResultModel<List<KeyValueModel<global::Materal.Utils.Enums.ResultType>>>.Success(result, ""获取成功"");
+    }
 }
 ";
 
@@ -64,11 +75,13 @@ public partial class EnumsController : {{context.ModuleName}}Controller
         if (context.Enums.Any(e => e.HasAttribute<NotControllerAttribute>())) return Task.CompletedTask;
 
         Template template = Template.Parse(_enumControllerTemplate);
-        List<EnumViewModel> enums = [.. context.Enums.Select(e => new EnumViewModel
-        {
-            Name = e.Name,
-            GetAllSummary = GetEnumGetAllSummary(e.Annotation)
-        })];
+        List<EnumViewModel> enums = [.. context.Enums
+            .Where(e => e.Name != "ResultType")
+            .Select(e => new EnumViewModel
+            {
+                Name = e.Name,
+                GetAllSummary = GetEnumGetAllSummary(e.Annotation)
+            })];
 
         string codeContent = RenderTemplate(template, context, enums);
         context.SaveAs(new StringBuilder(codeContent), context.ModuleApplicationMGCPath, "Controllers", "EnumsController.cs");

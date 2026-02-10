@@ -7,7 +7,7 @@ namespace MMB.Core.Repository;
 /// </summary>
 /// <typeparam name="TDomain"></typeparam>
 /// <typeparam name="TDBContext"></typeparam>
-public abstract class MMBCacheRepositoryImpl<TDomain, TDBContext>(TDBContext dbContext, ICacheHelper cacheHelper) : SqlServerCacheEFRepositoryImpl<TDomain, Guid, TDBContext>(dbContext, cacheHelper), IMMBCacheRepository<TDomain>
+public abstract class MMBCacheRepositoryImpl<TDomain, TDBContext>(TDBContext dbContext, ICacheHelper cacheHelper) : SqliteCacheEFRepositoryImpl<TDomain, Guid, TDBContext>(dbContext, cacheHelper), IMMBCacheRepository<TDomain>
     where TDomain : BaseDomain, IDomain, IEntity<Guid>, new()
     where TDBContext : DbContext
 {

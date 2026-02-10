@@ -12,7 +12,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.AccessLog\Materal.MergeBlock.AccessLog.csproj" />
-		<!--<ProjectReference Include="..\..\..\Materal.MergeBlock.Authorization\Materal.MergeBlock.Authorization.csproj" />-->
+		<ProjectReference Include="..\..\..\Materal.MergeBlock.Authorization\Materal.MergeBlock.Authorization.csproj" />
 		<!--<ProjectReference Include="..\..\..\Materal.MergeBlock.Consul\Materal.MergeBlock.Consul.csproj" />-->
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.Cors\Materal.MergeBlock.Cors.csproj" />
 		<!--<ProjectReference Include="..\..\..\Materal.MergeBlock.EventBus\Materal.MergeBlock.EventBus.csproj" />-->

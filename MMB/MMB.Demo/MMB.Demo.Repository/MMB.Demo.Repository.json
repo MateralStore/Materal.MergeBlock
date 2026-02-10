@@ -1,12 +1,7 @@
 ﻿{
   "Demo": {
     "DBConfig": {
-      "Address": "127.0.0.1",
-      "Port": "1433",
-      "Name": "MMBDemoTestDB",
-      "UserID": "sa",
-      "Password": "123456",
-      "TrustServerCertificate": true
+      "Source": "E:\\Project\\Materal\\Materal\\Materal.MergeBlock\\MMB\\MMB.Demo\\MMB.Demo.WebAPI\\bin\\MMBTestDB.db" //Dev
     }
   }
 }

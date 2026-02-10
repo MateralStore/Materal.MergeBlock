@@ -3,7 +3,7 @@
 /// <summary>
 /// MMB仓储模块
 /// </summary>
-public abstract class MMBRepositoryModule<TDBContext>(string moduleName) : RepositoryModule<TDBContext, SqlServerConfigModel>(moduleName)
+public abstract class MMBRepositoryModule<TDBContext>(string moduleName) : RepositoryModule<TDBContext, SqliteConfigModel>(moduleName)
     where TDBContext : DbContext
 {
     /// <inheritdoc/>
@@ -21,11 +21,11 @@ public abstract class MMBRepositoryModule<TDBContext>(string moduleName) : Repos
     /// </summary>
     /// <param name="services"></param>
     /// <param name="dBConfig"></param>
-    protected override void AddDBContext(IServiceCollection services, SqlServerConfigModel dBConfig)
+    protected override void AddDBContext(IServiceCollection services, SqliteConfigModel dBConfig)
     {
         services.AddDbContext<TDBContext>(delegate (DbContextOptionsBuilder options)
         {
-            options.UseSqlServer(dBConfig.ConnectionString, null).UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            options.UseSqlite(dBConfig.ConnectionString, null).UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         });
         services.TryAddScoped<IMigrateHelper<TDBContext>, MigrateHelper<TDBContext>>();
     }

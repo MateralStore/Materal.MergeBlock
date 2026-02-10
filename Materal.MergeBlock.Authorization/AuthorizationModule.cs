@@ -59,6 +59,7 @@ namespace Materal.MergeBlock.Authorization
             AdvancedContext advancedContext = context.ServiceProvider.GetRequiredService<AdvancedContext>();
             if (advancedContext.App is not WebApplication webApplication) return;
             webApplication.UseAuthentication();
+            webApplication.UseAuthorization();
         }
     }
 }
