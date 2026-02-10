@@ -28,7 +28,7 @@ public class EnumControllerGeneratorCodePlug : IMergeBlockGeneratorCodePlug
 using Microsoft.AspNetCore.Authorization;
 using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Enums;
 
-namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.HttpClient;
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Application.Controllers;
 
 /// <summary>
 /// 枚举控制器
@@ -54,10 +54,10 @@ public partial class EnumsController : {{context.ModuleName}}Controller
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    public ResultModel<List<KeyValueModel<global::Materal.Utils.Enums.ResultType>>> GetAllResultType()
+    public ResultModel<List<KeyValueModel<ResultType>>> GetAllResultType()
     {
-        List<KeyValueModel<global::Materal.Utils.Enums.ResultType>> result = KeyValueModel<global::Materal.Utils.Enums.ResultType>.GetAllCode();
-        return ResultModel<List<KeyValueModel<global::Materal.Utils.Enums.ResultType>>>.Success(result, ""获取成功"");
+        List<KeyValueModel<ResultType>> result = KeyValueModel<ResultType>.GetAllCode();
+        return ResultModel<List<KeyValueModel<ResultType>>>.Success(result, ""获取成功"");
     }
 }
 ";
@@ -71,9 +71,6 @@ public partial class EnumsController : {{context.ModuleName}}Controller
     /// <inheritdoc/>
     public Task AfterExcuteAsync(GeneratorCodeContext context)
     {
-        if (context.Enums.Count <= 0) return Task.CompletedTask;
-        if (context.Enums.Any(e => e.HasAttribute<NotControllerAttribute>())) return Task.CompletedTask;
-
         Template template = Template.Parse(_enumControllerTemplate);
         List<EnumViewModel> enums = [.. context.Enums
             .Where(e => e.Name != "ResultType")
