@@ -20,7 +20,7 @@ public static class ServiceImplHelper
     public static async Task ExchangeIndexAsync<TRepository, TDomain>(ExchangeIndexModel model, TRepository repository, IMergeBlockUnitOfWork unitOfWork, params string[] groupProperties)
         where TRepository : IRepository<TDomain, Guid>
         where TDomain : class, IIndexDomain, new() => await ExchangeIndexAsync<TRepository, TDomain>(model, repository, unitOfWork, null, groupProperties);
-    
+
     /// <summary>
     ///根据分组交换位序
     /// </summary>
@@ -70,7 +70,7 @@ public static class ServiceImplHelper
                 if (!value1.Equals(value2)) throw new MergeBlockModuleException("不是同一组数据不能更改位序");
             }
             leftExpression = Expression.PropertyOrField(mValue, propertyInfo.Name);
-            rightExpression = Expression.Constant(value1);
+            rightExpression = Expression.Constant(value1, propertyInfo.PropertyType);
             rightExpression = Expression.Equal(leftExpression, rightExpression);
             expression = Expression.And(expression, rightExpression);
         }
@@ -83,7 +83,7 @@ public static class ServiceImplHelper
         }
         await unitOfWork.CommitAsync();
     }
-    
+
     /// <summary>
     ///根据分组交换位序与父级
     /// </summary>
@@ -111,7 +111,7 @@ public static class ServiceImplHelper
             }, repository, unitOfWork, treeGroupProperties);
         }, indexGroupProperties);
     }
-    
+
     /// <summary>
     /// 更改父级
     /// </summary>
@@ -158,7 +158,7 @@ public static class ServiceImplHelper
         }
         await unitOfWork.CommitAsync();
     }
-    
+
     /// <summary>
     /// 更改附件
     /// </summary>
@@ -185,7 +185,7 @@ public static class ServiceImplHelper
         {
             ParameterExpression mParameterExpression = Expression.Parameter(tType, "m");
             MemberExpression leftExpression = Expression.Property(mParameterExpression, targetName);
-            ConstantExpression rightExpression = Expression.Constant(id);
+            ConstantExpression rightExpression = Expression.Constant(id, propertyInfo.PropertyType);
             BinaryExpression expression = Expression.Equal(leftExpression, rightExpression);
             Expression<Func<T, bool>> searchExpression = Expression.Lambda<Func<T, bool>>(expression, mParameterExpression);
             List<T> allAdjunctInfos = await repository.FindAsync(searchExpression);
@@ -207,7 +207,7 @@ public static class ServiceImplHelper
             unitOfWork.RegisterAdd(t);
         }
     }
-    
+
     /// <summary>
     /// 获得查询树结构领域表达式
     /// </summary>
