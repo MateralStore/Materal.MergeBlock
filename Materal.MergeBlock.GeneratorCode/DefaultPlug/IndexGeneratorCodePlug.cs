@@ -12,6 +12,7 @@ public class IndexGeneratorCodePlug : IMergeBlockGeneratorCodePlug
     {
         public string Name { get; set; } = string.Empty;
         public string? Annotation { get; set; }
+        public bool IsTreeDomain { get; set; }
         public string? IndexGroupPropertyName { get; set; }
         public string? TreeGroupPropertyName { get; set; }
     }
@@ -116,13 +117,25 @@ namespace {{context.ProjectName}}.{{context.ModuleName}}.Application.Services
         public async Task ExchangeIndexAsync(ExchangeIndexModel model)
         {
             OnExchangeIndexBefore(model);
+{{- if domain.IsTreeDomain }}
 {{- if domain.IndexGroupPropertyName == null || domain.IndexGroupPropertyName == """" }}
-            await ServiceImplHelper.ExchangeIndexByGroupPropertiesAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork);
+{{- if domain.TreeGroupPropertyName == null || domain.TreeGroupPropertyName == """" }}
+            await ServiceImplHelper.ExchangeParentAndIndexAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork, [], []);
+{{- else }}
+            await ServiceImplHelper.ExchangeParentAndIndexAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork, [], [nameof({{domain.Name}}.{{domain.TreeGroupPropertyName}})]);
+{{- end }}
 {{- else }}
 {{- if domain.TreeGroupPropertyName == null || domain.TreeGroupPropertyName == """" }}
-            await ServiceImplHelper.ExchangeIndexByGroupPropertiesAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork, [nameof({{domain.Name}}.{{domain.IndexGroupPropertyName}})]);
+            await ServiceImplHelper.ExchangeParentAndIndexAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork, [nameof({{domain.Name}}.{{domain.IndexGroupPropertyName}})], []);
 {{- else }}
-            await ServiceImplHelper.ExchangeIndexAndExchangeParentByGroupPropertiesAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork, [nameof({{domain.Name}}.{{domain.IndexGroupPropertyName}})], [nameof({{domain.Name}}.{{domain.TreeGroupPropertyName}})]);
+            await ServiceImplHelper.ExchangeParentAndIndexAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork, [nameof({{domain.Name}}.{{domain.IndexGroupPropertyName}})], [nameof({{domain.Name}}.{{domain.TreeGroupPropertyName}})]);
+{{- end }}
+{{- end }}
+{{- else }}
+{{- if domain.IndexGroupPropertyName == null || domain.IndexGroupPropertyName == """" }}
+            await ServiceImplHelper.ExchangeIndexAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork);
+{{- else }}
+            await ServiceImplHelper.ExchangeIndexAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork, [nameof({{domain.Name}}.{{domain.IndexGroupPropertyName}})]);
 {{- end }}
 {{- end }}
             OnExchangeIndexAfter(model);
@@ -308,6 +321,7 @@ public partial class {{domain.Name}}RepositoryImpl
         {
             Name = domain.Name,
             Annotation = domain.Annotation,
+            IsTreeDomain = domain.IsTreeDomain,
             IndexGroupPropertyName = indexGroupProperty?.Name,
             TreeGroupPropertyName = treeGroupProperty?.Name
         };

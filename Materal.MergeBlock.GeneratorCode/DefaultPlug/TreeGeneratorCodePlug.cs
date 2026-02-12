@@ -33,25 +33,24 @@ public class TreeGeneratorCodePlug : IMergeBlockGeneratorCodePlug
 using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.DTO.{{domain.Name}};
 using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Services.Models.{{domain.Name}};
 
-namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Services
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Services;
+
+/// <summary>
+/// {{domain.Annotation}}服务(Tree)
+/// </summary>
+public partial interface I{{domain.Name}}Service
 {
     /// <summary>
-    /// {{domain.Annotation}}服务(Tree)
+    /// 更改父级
     /// </summary>
-    public partial interface I{{domain.Name}}Service
-    {
-        /// <summary>
-        /// 更改父级
-        /// </summary>
-        /// <param name=""model""></param>
-        /// <returns></returns>
-        Task ExchangeParentAsync(ExchangeParentModel model);
-        /// <summary>
-        /// 查询树列表
-        /// </summary>
-        /// <param name=""queryModel""></param>
-        Task<List<{{domain.Name}}TreeListDTO>> GetTreeListAsync(Query{{domain.Name}}TreeListModel queryModel);
-    }
+    /// <param name=""model""></param>
+    /// <returns></returns>
+    Task ExchangeParentAsync(ExchangeParentModel model);
+    /// <summary>
+    /// 查询树列表
+    /// </summary>
+    /// <param name=""queryModel""></param>
+    Task<List<{{domain.Name}}TreeListDTO>> GetTreeListAsync(Query{{domain.Name}}TreeListModel queryModel);
 }
 ";
 
@@ -139,6 +138,7 @@ public partial class {{domain.Name}}TreeListDTO : {{domain.Name}}ListDTO, ITreeD
 
     private static readonly string _treeQueryRequestModelTemplate = @"
 namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.RequestModel.{{domain.Name}};
+
 /// <summary>
 /// {{domain.Annotation}}树查询请求模型
 /// </summary>
@@ -160,6 +160,7 @@ public partial class Query{{domain.Name}}TreeListRequestModel : FilterModel
 
     private static readonly string _treeQueryModelTemplate = @"
 namespace {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Services.Models.{{domain.Name}};
+
 /// <summary>
 /// {{domain.Annotation}}树查询模型
 /// </summary>
@@ -183,118 +184,117 @@ public partial class Query{{domain.Name}}TreeListModel : FilterModel
 using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.DTO.{{domain.Name}};
 using {{context.ProjectName}}.{{context.ModuleName}}.Abstractions.Services.Models.{{domain.Name}};
 
-namespace {{context.ProjectName}}.{{context.ModuleName}}.Application.Services
+namespace {{context.ProjectName}}.{{context.ModuleName}}.Application.Services;
+
+/// <summary>
+/// {{domain.Annotation}}服务(Tree)
+/// </summary>
+public partial class {{domain.Name}}ServiceImpl
 {
     /// <summary>
-    /// {{domain.Annotation}}服务(Tree)
+    /// 更改父级
     /// </summary>
-    public partial class {{domain.Name}}ServiceImpl
+    /// <param name=""model""></param>
+    /// <returns></returns>
+    public async Task ExchangeParentAsync(ExchangeParentModel model)
     {
-        /// <summary>
-        /// 更改父级
-        /// </summary>
-        /// <param name=""model""></param>
-        /// <returns></returns>
-        public async Task ExchangeParentAsync(ExchangeParentModel model)
-        {
-            OnExchangeParentBefore(model);
+        OnExchangeParentBefore(model);
 {{- if domain.TreeGroupPropertyName == null || domain.TreeGroupPropertyName == """" }}
-            await ServiceImplHelper.ExchangeParentByGroupPropertiesAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork);
+        await ServiceImplHelper.ExchangeParentAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork);
 {{- else }}
-            await ServiceImplHelper.ExchangeParentByGroupPropertiesAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork, nameof({{domain.Name}}.{{domain.TreeGroupPropertyName}}));
+        await ServiceImplHelper.ExchangeParentAsync<I{{domain.Name}}Repository, {{domain.Name}}>(model, DefaultRepository, UnitOfWork, nameof({{domain.Name}}.{{domain.TreeGroupPropertyName}}));
 {{- end }}
-            OnExchangeParentAfter(model);
-        }
-        /// <summary>
-        /// 更改父级之前
-        /// </summary>
-        /// <param name=""model""></param>
-        /// <returns></returns>
-        partial void OnExchangeParentBefore(ExchangeParentModel model);
-        /// <summary>
-        /// 更改父级之后
-        /// </summary>
-        /// <param name=""model""></param>
-        /// <returns></returns>
-        partial void OnExchangeParentAfter(ExchangeParentModel model);
-        /// <summary>
-        /// 查询树列表
-        /// </summary>
-        /// <param name=""queryModel""></param>
-        public async Task<List<{{domain.Name}}TreeListDTO>> GetTreeListAsync(Query{{domain.Name}}TreeListModel queryModel)
+        OnExchangeParentAfter(model);
+    }
+    /// <summary>
+    /// 更改父级之前
+    /// </summary>
+    /// <param name=""model""></param>
+    /// <returns></returns>
+    partial void OnExchangeParentBefore(ExchangeParentModel model);
+    /// <summary>
+    /// 更改父级之后
+    /// </summary>
+    /// <param name=""model""></param>
+    /// <returns></returns>
+    partial void OnExchangeParentAfter(ExchangeParentModel model);
+    /// <summary>
+    /// 查询树列表
+    /// </summary>
+    /// <param name=""queryModel""></param>
+    public async Task<List<{{domain.Name}}TreeListDTO>> GetTreeListAsync(Query{{domain.Name}}TreeListModel queryModel)
+    {
+        #region 排序表达式
+        Type domainType = typeof({{domain.Name}});
+        Expression<Func<{{domain.Name}}, object>> sortExpression = m => m.CreateTime;
+        SortOrder sortOrder = SortOrder.Descending;
+        if (queryModel.SortPropertyName is not null && !string.IsNullOrWhiteSpace(queryModel.SortPropertyName) && domainType.GetProperty(queryModel.SortPropertyName) is not null)
         {
-            #region 排序表达式
-            Type domainType = typeof({{domain.Name}});
-            Expression<Func<{{domain.Name}}, object>> sortExpression = m => m.CreateTime;
-            SortOrder sortOrder = SortOrder.Descending;
-            if (queryModel.SortPropertyName is not null && !string.IsNullOrWhiteSpace(queryModel.SortPropertyName) && domainType.GetProperty(queryModel.SortPropertyName) is not null)
+            sortExpression = queryModel.GetSortExpression<{{domain.Name}}>() ?? sortExpression;
+            sortOrder = queryModel.IsAsc ? SortOrder.Ascending : SortOrder.Descending;
+        }
+        else if (domainType.IsAssignableTo<IIndexDomain>())
+        {
+            ParameterExpression parameterExpression = Expression.Parameter(domainType, ""m"");
+            MemberExpression memberExpression = Expression.Property(parameterExpression, nameof(IIndexDomain.Index));
+            UnaryExpression unaryExpression = Expression.Convert(memberExpression, typeof(object));
+            sortExpression = Expression.Lambda<Func<{{domain.Name}}, object>>(unaryExpression, parameterExpression);
+            sortOrder = SortOrder.Ascending;
+        }
+        #endregion
+        #region 查询数据源
+        List<{{domain.Name}}> allInfo;
+        if (DefaultRepository is ICacheEFRepository<{{domain.Name}}, Guid> cacheRepository)
+        {
+            allInfo = await cacheRepository.GetAllInfoFromCacheAsync();
+            Func<{{domain.Name}}, bool> searchDlegate = queryModel.GetSearchDelegate<{{domain.Name}}>();
+            Func<{{domain.Name}}, object> sortDlegate = sortExpression.Compile();
+            if (sortOrder == SortOrder.Ascending)
             {
-                sortExpression = queryModel.GetSortExpression<{{domain.Name}}>() ?? sortExpression;
-                sortOrder = queryModel.IsAsc ? SortOrder.Ascending : SortOrder.Descending;
-            }
-            else if (domainType.IsAssignableTo<IIndexDomain>())
-            {
-                ParameterExpression parameterExpression = Expression.Parameter(domainType, ""m"");
-                MemberExpression memberExpression = Expression.Property(parameterExpression, nameof(IIndexDomain.Index));
-                UnaryExpression unaryExpression = Expression.Convert(memberExpression, typeof(object));
-                sortExpression = Expression.Lambda<Func<{{domain.Name}}, object>>(unaryExpression, parameterExpression);
-                sortOrder = SortOrder.Ascending;
-            }
-            #endregion
-            #region 查询数据源
-            List<{{domain.Name}}> allInfo;
-            if (DefaultRepository is ICacheEFRepository<{{domain.Name}}, Guid> cacheRepository)
-            {
-                allInfo = await cacheRepository.GetAllInfoFromCacheAsync();
-                Func<{{domain.Name}}, bool> searchDlegate = queryModel.GetSearchDelegate<{{domain.Name}}>();
-                Func<{{domain.Name}}, object> sortDlegate = sortExpression.Compile();
-                if (sortOrder == SortOrder.Ascending)
-                {
-                    allInfo = [.. allInfo.Where(searchDlegate).OrderBy(sortDlegate)];
-                }
-                else
-                {
-                    allInfo = [.. allInfo.Where(searchDlegate).OrderByDescending(sortDlegate)];
-                }
+                allInfo = [.. allInfo.Where(searchDlegate).OrderBy(sortDlegate)];
             }
             else
             {
-                allInfo = await DefaultRepository.FindAsync(queryModel, sortExpression, sortOrder);
+                allInfo = [.. allInfo.Where(searchDlegate).OrderByDescending(sortDlegate)];
             }
-            #endregion
-            Dictionary<string, object> contextData = [];
-            OnToTreeBefore(allInfo, queryModel, contextData);
-            List<{{domain.Name}}TreeListDTO> result = allInfo.ToTree<{{domain.Name}}, {{domain.Name}}TreeListDTO>(queryModel.ParentID, (dto, domain) =>
-            {
-                Mapper.Map(domain, dto);
-                OnConvertToTreeDTO(dto, domain, queryModel, contextData);
-            });
-            OnToTreeAfter(result, queryModel, contextData);
-            return result;
         }
-        /// <summary>
-        /// 转换树之前
-        /// </summary>
-        /// <param name=""allInfo""></param>
-        /// <param name=""queryModel""></param>
-        /// <param name=""contextData""></param>
-        partial void OnToTreeBefore(List<{{domain.Name}}> allInfo, Query{{domain.Name}}TreeListModel queryModel, Dictionary<string, object> contextData);
-        /// <summary>
-        /// 转换树之后
-        /// </summary>
-        /// <param name=""dtos""></param>
-        /// <param name=""queryModel""></param>
-        /// <param name=""contextData""></param>
-        partial void OnToTreeAfter(List<{{domain.Name}}TreeListDTO> dtos, Query{{domain.Name}}TreeListModel queryModel, Dictionary<string, object> contextData);
-        /// <summary>
-        /// 转换为树DTO
-        /// </summary>
-        /// <param name=""dto""></param>
-        /// <param name=""domain""></param>
-        /// <param name=""queryModel""></param>
-        /// <param name=""contextData""></param>
-        partial void OnConvertToTreeDTO({{domain.Name}}TreeListDTO dto, {{domain.Name}} domain, Query{{domain.Name}}TreeListModel queryModel, Dictionary<string, object> contextData);
+        else
+        {
+            allInfo = await DefaultRepository.FindAsync(queryModel, sortExpression, sortOrder);
+        }
+        #endregion
+        Dictionary<string, object> contextData = [];
+        OnToTreeBefore(allInfo, queryModel, contextData);
+        List<{{domain.Name}}TreeListDTO> result = allInfo.ToTree<{{domain.Name}}, {{domain.Name}}TreeListDTO>(queryModel.ParentID, (dto, domain) =>
+        {
+            Mapper.Map(domain, dto);
+            OnConvertToTreeDTO(dto, domain, queryModel, contextData);
+        });
+        OnToTreeAfter(result, queryModel, contextData);
+        return result;
     }
+    /// <summary>
+    /// 转换树之前
+    /// </summary>
+    /// <param name=""allInfo""></param>
+    /// <param name=""queryModel""></param>
+    /// <param name=""contextData""></param>
+    partial void OnToTreeBefore(List<{{domain.Name}}> allInfo, Query{{domain.Name}}TreeListModel queryModel, Dictionary<string, object> contextData);
+    /// <summary>
+    /// 转换树之后
+    /// </summary>
+    /// <param name=""dtos""></param>
+    /// <param name=""queryModel""></param>
+    /// <param name=""contextData""></param>
+    partial void OnToTreeAfter(List<{{domain.Name}}TreeListDTO> dtos, Query{{domain.Name}}TreeListModel queryModel, Dictionary<string, object> contextData);
+    /// <summary>
+    /// 转换为树DTO
+    /// </summary>
+    /// <param name=""dto""></param>
+    /// <param name=""domain""></param>
+    /// <param name=""queryModel""></param>
+    /// <param name=""contextData""></param>
+    partial void OnConvertToTreeDTO({{domain.Name}}TreeListDTO dto, {{domain.Name}} domain, Query{{domain.Name}}TreeListModel queryModel, Dictionary<string, object> contextData);
 }
 ";
 
