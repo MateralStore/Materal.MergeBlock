@@ -1,4 +1,4 @@
-﻿using Swashbuckle.AspNetCore.SwaggerUI;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace Materal.MergeBlock.Swagger.Abstractions;
 

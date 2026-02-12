@@ -1,4 +1,4 @@
-﻿namespace MateralMergeBlockVSIX.ToolWindows.Attributes
+namespace MateralMergeBlockVSIX.ToolWindows.Attributes
 {
     /// <summary>
     /// 创建代码方法特性

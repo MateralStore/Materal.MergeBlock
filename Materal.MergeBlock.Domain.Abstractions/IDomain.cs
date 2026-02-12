@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.Domain.Abstractions
+namespace Materal.MergeBlock.Domain.Abstractions
 {
     /// <summary>
     /// Domain

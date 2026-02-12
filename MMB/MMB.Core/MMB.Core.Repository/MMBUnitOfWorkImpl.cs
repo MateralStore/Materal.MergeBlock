@@ -1,4 +1,4 @@
-﻿namespace MMB.Core.Repository;
+namespace MMB.Core.Repository;
 
 /// <summary>
 /// MMB工作单元实现

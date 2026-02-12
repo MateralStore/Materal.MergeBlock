@@ -1,4 +1,4 @@
-﻿namespace MMB.Demo.Repository;
+namespace MMB.Demo.Repository;
 
 /// <summary>
 /// Demo工作单元实现

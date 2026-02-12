@@ -1,4 +1,4 @@
-﻿namespace MMB.Demo.Repository;
+namespace MMB.Demo.Repository;
 
 /// <summary>
 /// Demo仓储实现

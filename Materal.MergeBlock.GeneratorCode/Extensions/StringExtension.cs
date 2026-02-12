@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.GeneratorCode.Extensions;
+namespace Materal.MergeBlock.GeneratorCode.Extensions;
 
 /// <summary>
 /// 字符串扩展

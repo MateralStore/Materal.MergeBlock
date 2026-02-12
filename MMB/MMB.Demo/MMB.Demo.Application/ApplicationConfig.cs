@@ -1,4 +1,4 @@
-﻿namespace MMB.Demo.Application;
+namespace MMB.Demo.Application;
 
 /// <summary>
 /// 应用程序配置

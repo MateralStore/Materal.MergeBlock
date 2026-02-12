@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Authorization.Abstractions;
+using Materal.MergeBlock.Authorization.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using MMB.Demo.Abstractions.Enums;
 using System.Security.Claims;

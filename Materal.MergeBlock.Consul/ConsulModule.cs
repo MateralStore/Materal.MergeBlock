@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Abstractions.Extensions;
+using Materal.MergeBlock.Abstractions.Extensions;
 using Materal.MergeBlock.Consul.Abstractions;
 using Materal.Utils.Consul;
 using Microsoft.Extensions.Configuration;

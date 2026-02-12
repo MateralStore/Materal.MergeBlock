@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.Abstractions
+namespace Materal.MergeBlock.Abstractions
 {
     /// <summary>
     /// MergeBlock程序集特性

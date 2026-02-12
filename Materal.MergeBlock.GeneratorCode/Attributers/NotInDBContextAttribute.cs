@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.GeneratorCode.Attributers;
+namespace Materal.MergeBlock.GeneratorCode.Attributers;
 
 /// <summary>
 /// 不在 DBContext 中生成特性

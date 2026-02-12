@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.GeneratorCode;
+namespace Materal.MergeBlock.GeneratorCode;
 
 /// <summary>
 /// 插件主机

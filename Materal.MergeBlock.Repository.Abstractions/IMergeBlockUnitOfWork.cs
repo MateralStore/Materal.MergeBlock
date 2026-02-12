@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.Repository.Abstractions
+namespace Materal.MergeBlock.Repository.Abstractions
 {
     /// <summary>
     /// 核心工作单元

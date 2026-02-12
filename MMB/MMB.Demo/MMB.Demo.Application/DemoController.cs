@@ -1,4 +1,4 @@
-﻿namespace MMB.Demo.Application;
+namespace MMB.Demo.Application;
 
 /// <summary>
 /// Demo控制器

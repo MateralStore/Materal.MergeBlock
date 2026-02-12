@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.GeneratorCode.Attributers;
+namespace Materal.MergeBlock.GeneratorCode.Attributers;
 
 /// <summary>
 /// 不生成 DTO 特性

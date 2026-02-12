@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Web.Abstractions;
+using Materal.MergeBlock.Web.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;

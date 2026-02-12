@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using Materal.Abstractions;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Windows;

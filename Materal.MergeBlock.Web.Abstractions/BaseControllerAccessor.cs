@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Abstractions.Models;
+using Materal.MergeBlock.Abstractions.Models;
 using Materal.MergeBlock.Web.Abstractions.ControllerHttpHelper;
 using Materal.MergeBlock.Web.Abstractions.Controllers;
 using System.ComponentModel.DataAnnotations;

@@ -1,4 +1,4 @@
-﻿namespace ProjectName.ModuleName.Abstractions.Enums;
+namespace ProjectName.ModuleName.Abstractions.Enums;
 
 /// <summary>
 /// 性别

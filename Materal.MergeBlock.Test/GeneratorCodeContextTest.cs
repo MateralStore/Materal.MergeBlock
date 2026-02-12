@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.GeneratorCode;
+using Materal.MergeBlock.GeneratorCode;
 
 namespace Materal.MergeBlock.Test;
 

@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.GeneratorCode.Attributers;
+namespace Materal.MergeBlock.GeneratorCode.Attributers;
 
 /// <summary>
 /// 列类型特性

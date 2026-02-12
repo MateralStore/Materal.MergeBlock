@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.Abstractions
+namespace Materal.MergeBlock.Abstractions
 {
     /// <summary>
     /// HTTP状态码异常

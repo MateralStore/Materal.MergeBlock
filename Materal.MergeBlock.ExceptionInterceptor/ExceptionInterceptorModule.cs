@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Abstractions.Extensions;
+using Materal.MergeBlock.Abstractions.Extensions;
 using Microsoft.AspNetCore.Builder;
 
 namespace Materal.MergeBlock.ExceptionInterceptor

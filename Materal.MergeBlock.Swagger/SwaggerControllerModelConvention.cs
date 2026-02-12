@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using System.Reflection;
 
 namespace Materal.MergeBlock.Swagger

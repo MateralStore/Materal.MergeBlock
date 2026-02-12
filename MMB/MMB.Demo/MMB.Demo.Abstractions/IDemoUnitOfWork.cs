@@ -1,4 +1,4 @@
-﻿namespace MMB.Demo.Abstractions;
+namespace MMB.Demo.Abstractions;
 
 /// <summary>
 /// Demo工作单元

@@ -1,4 +1,4 @@
-﻿using Materal.Extensions.DependencyInjection;
+using Materal.Extensions.DependencyInjection;
 using Materal.Extensions.DependencyInjection.AspNetCore;
 using Materal.MergeBlock.Extensions;
 using Microsoft.AspNetCore.Builder;

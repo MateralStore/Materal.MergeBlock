@@ -1,4 +1,4 @@
-﻿using Materal.Utils.AutoMapper.Extensions;
+using Materal.Utils.AutoMapper.Extensions;
 using System.Runtime.Loader;
 
 namespace Materal.MergeBlock.Extensions

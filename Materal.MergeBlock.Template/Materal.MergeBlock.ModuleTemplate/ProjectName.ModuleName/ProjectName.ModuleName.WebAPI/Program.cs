@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Web;
+using Materal.MergeBlock.Web;
 
 namespace ProjectName.ModuleName.WebAPI;
 

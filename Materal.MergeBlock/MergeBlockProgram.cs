@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Extensions;
+using Materal.MergeBlock.Extensions;
 
 namespace Materal.MergeBlock
 {

@@ -1,4 +1,4 @@
-﻿using Materal.Logger.Abstractions.Extensions;
+using Materal.Logger.Abstractions.Extensions;
 using Materal.Logger.Extensions;
 using Microsoft.Extensions.Configuration;
 

@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Abstractions;
+using Materal.MergeBlock.Abstractions;
 
 namespace Materal.MergeBlock.Repository.Abstractions
 {

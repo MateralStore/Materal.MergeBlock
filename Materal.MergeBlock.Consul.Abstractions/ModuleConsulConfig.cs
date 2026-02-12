@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.Consul.Abstractions
+namespace Materal.MergeBlock.Consul.Abstractions
 {
     /// <summary>
     /// 模块Consul配置

@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock
+namespace Materal.MergeBlock
 {
     /// <summary>
     /// 插件管理器

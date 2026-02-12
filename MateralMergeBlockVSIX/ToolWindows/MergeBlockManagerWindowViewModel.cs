@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using Microsoft.VisualStudio.PlatformUI;
 using System.Windows.Controls;
 

@@ -1,4 +1,4 @@
-﻿namespace MMB.Core.Abstractions;
+namespace MMB.Core.Abstractions;
 
 /// <summary>
 /// MMB仓储接口

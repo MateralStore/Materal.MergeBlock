@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Consul.Abstractions;
+using Materal.MergeBlock.Consul.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using MMB.Demo.Abstractions.Enums;
 using MMB.Demo.Repository;

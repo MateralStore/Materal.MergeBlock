@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.Runtime.Loader;
 
 namespace Materal.MergeBlock.Abstractions

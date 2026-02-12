@@ -1,4 +1,4 @@
-﻿using ProjectName.ModuleName.Repository;
+using ProjectName.ModuleName.Repository;
 using Materal.MergeBlock.Consul.Abstractions;
 
 namespace ProjectName.ModuleName.Application;

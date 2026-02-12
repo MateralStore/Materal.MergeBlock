@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using MateralMergeBlockVSIX.Helper;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.Interop;

@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using Materal.Abstractions;
 using MateralMergeBlockVSIX.Helper;
 using Microsoft.VisualStudio.PlatformUI;

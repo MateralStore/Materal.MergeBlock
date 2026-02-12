@@ -1,4 +1,4 @@
-﻿using Materal.Utils.Consul;
+using Materal.Utils.Consul;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

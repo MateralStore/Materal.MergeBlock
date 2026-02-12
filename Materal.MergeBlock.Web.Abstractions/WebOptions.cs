@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.Web.Abstractions
+namespace Materal.MergeBlock.Web.Abstractions
 {
     /// <summary>
     /// Web配置

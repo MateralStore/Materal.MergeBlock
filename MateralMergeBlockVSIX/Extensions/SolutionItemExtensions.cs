@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using Materal.MergeBlock.GeneratorCode;
 using System.Collections.Generic;
 using System.IO;

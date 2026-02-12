@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.AccessLog
+namespace Materal.MergeBlock.AccessLog
 {
     /// <summary>
     /// 访问日志配置

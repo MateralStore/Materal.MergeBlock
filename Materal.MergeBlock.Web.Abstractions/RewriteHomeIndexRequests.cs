@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Rewrite;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace Materal.MergeBlock.Web.Abstractions
 {

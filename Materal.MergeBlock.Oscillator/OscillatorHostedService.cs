@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Oscillator.Abstractions;
+using Materal.MergeBlock.Oscillator.Abstractions;
 using Materal.Oscillator.Abstractions.Oscillators;
 using Materal.Oscillator.Abstractions.PlanTriggers;
 using Materal.Utils.Extensions;

@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;

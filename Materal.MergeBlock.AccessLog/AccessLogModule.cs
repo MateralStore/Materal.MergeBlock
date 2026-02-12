@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Logger;
+using Materal.MergeBlock.Logger;
 using Materal.MergeBlock.Web;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;

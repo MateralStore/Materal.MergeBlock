@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock
+namespace Materal.MergeBlock
 {
     /// <summary>
     /// 模块加载器

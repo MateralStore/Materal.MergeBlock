@@ -1,4 +1,4 @@
-﻿namespace ProjectName.Core.Abstractions;
+namespace ProjectName.Core.Abstractions;
 
 /// <summary>
 /// ProjectName缓存仓储接口

@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.Web.Abstractions
+namespace Materal.MergeBlock.Web.Abstractions
 {
     /// <summary>
     /// 目标属性特性

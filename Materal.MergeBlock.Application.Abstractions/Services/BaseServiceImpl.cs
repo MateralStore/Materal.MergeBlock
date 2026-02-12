@@ -1,4 +1,4 @@
-﻿using AspectCore.DependencyInjection;
+using AspectCore.DependencyInjection;
 
 namespace Materal.MergeBlock.Application.Abstractions.Services;
 

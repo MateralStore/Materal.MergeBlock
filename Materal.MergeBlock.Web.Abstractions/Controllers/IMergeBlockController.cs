@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Abstractions.Models;
+using Materal.MergeBlock.Abstractions.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 

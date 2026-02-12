@@ -1,4 +1,4 @@
-﻿using Materal.Abstractions;
+using Materal.Abstractions;
 using Materal.MergeBlock.GeneratorCode;
 using System.CommandLine;
 

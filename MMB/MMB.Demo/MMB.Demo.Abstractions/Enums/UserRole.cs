@@ -1,4 +1,4 @@
-﻿namespace MMB.Demo.Abstractions.Enums;
+namespace MMB.Demo.Abstractions.Enums;
 
 /// <summary>
 /// 用户角色

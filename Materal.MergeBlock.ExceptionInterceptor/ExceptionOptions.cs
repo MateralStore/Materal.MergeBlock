@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.ExceptionInterceptor
+namespace Materal.MergeBlock.ExceptionInterceptor
 {
     /// <summary>
     /// 异常配置

@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.Abstractions.Models
+namespace Materal.MergeBlock.Abstractions.Models
 {
     /// <summary>
     /// 更改父级模型

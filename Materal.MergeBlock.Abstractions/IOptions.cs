@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.Abstractions
+namespace Materal.MergeBlock.Abstractions
 {
     /// <summary>
     /// 实现此空接口以自动从配置文件中读取对应的节点并绑定注入到容器，

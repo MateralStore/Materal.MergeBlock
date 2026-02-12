@@ -1,4 +1,4 @@
-﻿namespace ProjectName.ModuleName.Repository;
+namespace ProjectName.ModuleName.Repository;
 
 /// <summary>
 /// ModuleName仓储实现

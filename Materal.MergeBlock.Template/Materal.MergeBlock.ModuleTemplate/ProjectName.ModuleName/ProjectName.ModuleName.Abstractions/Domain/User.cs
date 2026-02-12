@@ -1,4 +1,4 @@
-﻿namespace ProjectName.ModuleName.Abstractions.Domain;
+namespace ProjectName.ModuleName.Abstractions.Domain;
 
 /// <summary>
 /// 用户

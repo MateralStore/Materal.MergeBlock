@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Abstractions.Models;
+using Materal.MergeBlock.Abstractions.Models;
 using Materal.MergeBlock.Abstractions.Services;
 using Materal.MergeBlock.GeneratorCode.Attributers;
 using Microsoft.AspNetCore.Mvc;

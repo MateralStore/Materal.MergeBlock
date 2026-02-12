@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.LoadPluginsServices;
+using Materal.MergeBlock.LoadPluginsServices;
 using Microsoft.Extensions.Options;
 
 namespace Materal.MergeBlock

@@ -1,4 +1,4 @@
-﻿namespace Materal.MergeBlock.Web.Abstractions
+namespace Materal.MergeBlock.Web.Abstractions
 {
     /// <summary>
     /// 监听的主机

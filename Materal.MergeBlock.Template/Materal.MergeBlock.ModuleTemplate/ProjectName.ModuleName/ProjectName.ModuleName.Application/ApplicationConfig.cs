@@ -1,4 +1,4 @@
-﻿namespace ProjectName.ModuleName.Application;
+namespace ProjectName.ModuleName.Application;
 
 /// <summary>
 /// 应用程序配置

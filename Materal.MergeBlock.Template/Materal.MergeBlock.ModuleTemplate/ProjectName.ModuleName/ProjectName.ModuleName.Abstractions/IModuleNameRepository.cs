@@ -1,4 +1,4 @@
-﻿namespace ProjectName.ModuleName.Abstractions;
+namespace ProjectName.ModuleName.Abstractions;
 
 /// <summary>
 /// ModuleName仓储接口

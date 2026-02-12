@@ -1,4 +1,4 @@
-﻿using Materal.Extensions.DependencyInjection;
+using Materal.Extensions.DependencyInjection;
 using Materal.MergeBlock.Extensions;
 using Microsoft.Extensions.Hosting;
 

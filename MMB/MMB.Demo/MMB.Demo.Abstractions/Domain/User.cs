@@ -1,4 +1,4 @@
-﻿namespace MMB.Demo.Abstractions.Domain;
+namespace MMB.Demo.Abstractions.Domain;
 
 /// <summary>
 /// 用户

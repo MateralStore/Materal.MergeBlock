@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Authorization.Abstractions;
+using Materal.MergeBlock.Authorization.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace Materal.MergeBlock.Authorization

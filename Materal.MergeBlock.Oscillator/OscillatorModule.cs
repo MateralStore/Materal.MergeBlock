@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Abstractions.Extensions;
+using Materal.MergeBlock.Abstractions.Extensions;
 
 namespace Materal.MergeBlock.Oscillator
 {

@@ -1,4 +1,4 @@
-﻿using Materal.MergeBlock.Extensions;
+using Materal.MergeBlock.Extensions;
 using Microsoft.AspNetCore.Builder;
 
 namespace Materal.MergeBlock.Web

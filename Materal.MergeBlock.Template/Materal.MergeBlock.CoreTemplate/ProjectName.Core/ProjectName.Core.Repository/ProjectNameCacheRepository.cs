@@ -1,4 +1,4 @@
-﻿using Materal.Utils.Caching;
+using Materal.Utils.Caching;
 
 namespace ProjectName.Core.Repository;
 

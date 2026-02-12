@@ -1,4 +1,4 @@
-﻿using Materal.Utils.Crypto;
+using Materal.Utils.Crypto;
 using System.Text;
 
 namespace Materal.MergeBlock.Authorization.Abstractions

@@ -1,4 +1,4 @@
-﻿using Materal.Extensions.DependencyInjection;
+using Materal.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Materal.MergeBlock.Authorization.Abstractions

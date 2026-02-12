@@ -1,4 +1,4 @@
-﻿using Materal.Extensions;
+using Materal.Extensions;
 using Materal.MergeBlock.Consul.Abstractions;
 using Materal.Utils.Consul;
 using Materal.Utils.Consul.ConfigModels;

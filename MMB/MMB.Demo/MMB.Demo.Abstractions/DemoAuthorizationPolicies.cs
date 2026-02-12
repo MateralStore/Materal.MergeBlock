@@ -1,4 +1,4 @@
-﻿namespace MMB.Demo.Abstractions;
+namespace MMB.Demo.Abstractions;
 
 public static class DemoAuthorizationPolicies
 {
