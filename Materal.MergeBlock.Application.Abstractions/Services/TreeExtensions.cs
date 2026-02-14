@@ -13,9 +13,9 @@ namespace Materal.MergeBlock.Application.Abstractions.Services
         /// <param name="treeDomains"></param>
         /// <param name="parentID"></param>
         /// <param name="action"></param>
-        /// <param name="autorecode"></param>
+        /// <param name="useCopyProperties"></param>
         /// <returns></returns>
-        public static List<TDto> ToTree<TDomain, TDto>(this List<TDomain> treeDomains, Guid? parentID = null, Action<TDto, TDomain>? action = null, bool autorecode = true)
+        public static List<TDto> ToTree<TDomain, TDto>(this List<TDomain> treeDomains, Guid? parentID = null, Action<TDto, TDomain>? action = null, bool useCopyProperties = true)
             where TDomain : ITreeDomain
             where TDto : ITreeDTO<TDto>, new()
         {
@@ -25,7 +25,7 @@ namespace Materal.MergeBlock.Application.Abstractions.Services
             foreach (TDomain domain in treeDomains)
             {
                 TDto dto = new();
-                if (autorecode)
+                if (useCopyProperties)
                 {
                     CloneHelper.CopyProperties(domain, dto);
                 }

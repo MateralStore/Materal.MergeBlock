@@ -1,13 +1,12 @@
-namespace Materal.MergeBlock.Domain.Abstractions
+namespace Materal.MergeBlock.Domain.Abstractions;
+
+/// <summary>
+/// 附件Domain
+/// </summary>
+public interface IAdjunctDomain : IDomain
 {
     /// <summary>
-    /// 附件Domain
+    /// 上传文件唯一标识
     /// </summary>
-    public interface IAdjunctDomain : IDomain
-    {
-        /// <summary>
-        /// 上传文件唯一标识
-        /// </summary>
-        Guid UploadFileID { get; set; }
-    }
+    Guid UploadFileID { get; set; }
 }

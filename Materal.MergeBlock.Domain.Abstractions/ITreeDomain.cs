@@ -1,13 +1,12 @@
-namespace Materal.MergeBlock.Domain.Abstractions
+namespace Materal.MergeBlock.Domain.Abstractions;
+
+/// <summary>
+/// 树领域
+/// </summary>
+public interface ITreeDomain : IDomain
 {
     /// <summary>
-    /// 树领域
+    /// 父级
     /// </summary>
-    public interface ITreeDomain : IDomain
-    {
-        /// <summary>
-        /// 父级
-        /// </summary>
-        Guid? ParentID { get; set; }
-    }
+    Guid? ParentID { get; set; }
 }

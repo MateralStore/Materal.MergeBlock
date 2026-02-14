@@ -13,19 +13,14 @@ public class DomainModel : ClassModel
     /// </summary>
     public bool IsTreeDomain => Interfaces.Contains("ITreeDomain");
     /// <summary>
-    /// 获取树形领域的分组属性
-    /// </summary>
-    /// <returns></returns>
-    public PropertyModel? GetTreeGroupProperty() => Properties.FirstOrDefault(m => m.HasAttribute<TreeGroupAttribute>());
-    /// <summary>
     /// 是位序领域
     /// </summary>
     public bool IsIndexDomain => Interfaces.Contains("IIndexDomain");
     /// <summary>
-    /// 获取树形领域的分组属性
+    /// 获取位序领域的分组属性
     /// </summary>
     /// <returns></returns>
-    public PropertyModel? GetIndexGroupProperty() => Properties.FirstOrDefault(m => m.HasAttribute<IndexGroupAttribute>());
+    public IEnumerable<PropertyModel> GetIndexGroupProperties() => Properties.Where(m => m.HasAttribute<IndexGroupAttribute>());
     /// <summary>
     /// 是否为视图
     /// </summary>

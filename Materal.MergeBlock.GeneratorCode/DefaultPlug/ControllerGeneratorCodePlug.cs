@@ -58,16 +58,15 @@ namespace {{context.ProjectName}}.{{context.ModuleName}}.Application.Controllers
 /// <summary>
 /// {{domain.Annotation}}控制器
 /// </summary>
-public {{if domain.IsEmptyController}}
+{{if domain.IsEmptyController}}
     {{- if domain.HasNotServiceAttribute}}
-partial class {{domain.Name}}Controller : {{context.ModuleName}}Controller, I{{domain.Name}}Controller
+public partial class {{domain.Name}}Controller : {{context.ModuleName}}Controller, I{{domain.Name}}Controller
     {{- else}}
-partial class {{domain.Name}}Controller : {{context.ModuleName}}Controller<I{{domain.Name}}Service>, I{{domain.Name}}Controller
+public partial class {{domain.Name}}Controller : {{context.ModuleName}}Controller<I{{domain.Name}}Service>, I{{domain.Name}}Controller
     {{- end}}
 {{else}}
-partial class {{domain.Name}}Controller : {{context.ModuleName}}Controller<Add{{domain.Name}}RequestModel, Edit{{domain.Name}}RequestModel, Query{{domain.Name}}RequestModel, Add{{domain.Name}}Model, Edit{{domain.Name}}Model, Query{{domain.Name}}Model, {{domain.Name}}DTO, {{domain.Name}}ListDTO, I{{domain.Name}}Service>, I{{domain.Name}}Controller
-{{end}}
-{
+public partial class {{domain.Name}}Controller : {{context.ModuleName}}Controller<Add{{domain.Name}}RequestModel, Edit{{domain.Name}}RequestModel, Query{{domain.Name}}RequestModel, Add{{domain.Name}}Model, Edit{{domain.Name}}Model, Query{{domain.Name}}Model, {{domain.Name}}DTO, {{domain.Name}}ListDTO, I{{domain.Name}}Service>, I{{domain.Name}}Controller
+{{end}}{
 }
 ";
 

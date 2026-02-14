@@ -15,14 +15,6 @@ namespace Materal.MergeBlock.GeneratorCode.Attributers;
 /// <description>在 <see cref="DefaultPlug.ServicesModelGeneratorCodePlug.GeneratorQueryModelAsync"/> 中：
 /// 不会生成该领域模型的 Query{DomainName}Model 类</description>
 /// </item>
-/// <item>
-/// <description>在 <see cref="DefaultPlug.TreeGeneratorCodePlug.GeneratorTreeQueryRequestModelAsync"/> 中：
-/// 不会生成该领域模型的 Query{DomainName}TreeListRequestModel 类</description>
-/// </item>
-/// <item>
-/// <description>在 <see cref="DefaultPlug.TreeGeneratorCodePlug.GeneratorTreeQueryModelAsync"/> 中：
-/// 不会生成该领域模型的 Query{DomainName}TreeListModel 类</description>
-/// </item>
 /// </list>
 /// <para><b>应用于属性时的影响：</b></para>
 /// <list type="bullet">

@@ -12,7 +12,7 @@ public class Program
     static async Task<int> Main(string[] args)
     {
 #if DEBUG
-        await GeneratorCodeAsync(@"E:\Project\GDB\YueHeShe\Server\YueHeShe.Main");
+        await GeneratorCodeAsync(@"E:\Project\Materal\Materal\Materal.MergeBlock\MMB\MMB.Demo");
 #endif
         Option<string> pathOption = new("--ModulePath", "指定模块路径");
         pathOption.AddAlias("-m");

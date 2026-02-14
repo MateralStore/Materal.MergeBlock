@@ -1,8 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="../../../../Common.props" />
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<TargetFramework>net10.0</TargetFramework>
 	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
+	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\MMB.Core\MMB.Core.Repository\MMB.Core.Repository.csproj" />
 		<ProjectReference Include="..\MMB.Demo.Abstractions\MMB.Demo.Abstractions.csproj" />

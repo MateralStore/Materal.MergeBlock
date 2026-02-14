@@ -25,7 +25,7 @@ public abstract class MMBRepositoryModule<TDBContext>(string moduleName) : Repos
     {
         services.AddDbContext<TDBContext>(delegate (DbContextOptionsBuilder options)
         {
-            options.UseSqlite(dBConfig.ConnectionString, null).UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            options.UseSqlite(dBConfig.ConnectionString, b => b.MigrationsAssembly(typeof(TDBContext).Assembly.GetName().Name)).UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         });
         services.TryAddScoped<IMigrateHelper<TDBContext>, MigrateHelper<TDBContext>>();
     }

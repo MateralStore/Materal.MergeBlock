@@ -8,15 +8,15 @@ namespace Materal.MergeBlock.GeneratorCode.Attributers;
 /// <para><b>应用于属性时的影响：</b></para>
 /// <list type="bullet">
 /// <item>
-/// <description>在 <see cref="DefaultPlug.IndexGeneratorCodePlug.GeneratorIRepositoryIndexCodeAsync"/> 中：
+/// <description>在 <see cref="DefaultPlug.IndexGeneratorCodePlug.GeneratorIRepositoryCodeAsync"/> 中：
 /// 生成的 GetMaxIndexAsync 方法会包含该分组属性作为参数</description>
 /// </item>
 /// <item>
-/// <description>在 <see cref="DefaultPlug.IndexGeneratorCodePlug.GeneratorRepositoryImplIndexCodeAsync"/> 中：
+/// <description>在 <see cref="DefaultPlug.IndexGeneratorCodePlug.GeneratorRepositoryImplCodeAsync"/> 中：
 /// GetMaxIndexAsync 方法实现会根据分组属性过滤数据，返回该分组内的最大位序</description>
 /// </item>
 /// <item>
-/// <description>在 <see cref="DefaultPlug.IndexGeneratorCodePlug.GeneratorServiceImplsIndexCodeAsync"/> 中：
+/// <description>在 <see cref="DefaultPlug.IndexGeneratorCodePlug.GeneratorServiceImplCodeAsync"/> 中：
 /// ExchangeIndexAsync 方法会将分组属性名称传递给位序交换辅助方法，确保位序交换在同一分组内进行</description>
 /// </item>
 /// </list>

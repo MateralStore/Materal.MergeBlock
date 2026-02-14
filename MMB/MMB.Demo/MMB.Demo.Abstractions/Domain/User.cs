@@ -12,12 +12,12 @@ public class User : BaseDomain, IDomain
     [Contains]
     public string Name { get; set; } = string.Empty;
     /// <summary>
-    /// 性别
+    /// 角色
     /// </summary>
     [DTOText]
-    [Required(ErrorMessage = "性别为空")]
+    [Required(ErrorMessage = "角色为空")]
     [Equal]
-    public Sex Sex { get; set; }
+    public UserRole Role { get; set; }
     /// <summary>
     /// 账号
     /// </summary>
