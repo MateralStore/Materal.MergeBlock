@@ -32,7 +32,14 @@ public static partial class ServiceImplHelper
         {
             // 优先使用 TargetID 的父级
             TDomain? targetDomain = await repository.FirstOrDefaultAsync(model.TargetID.Value);
-            targetParentID = targetDomain?.ParentID ?? model.ParentID ?? originalParentID;
+            if (targetDomain is not null)
+            {
+                targetParentID = targetDomain.ParentID;
+            }
+            else
+            {
+                targetParentID = model.ParentID ?? originalParentID;
+            }
         }
         else
         {
@@ -85,6 +92,8 @@ public static partial class ServiceImplHelper
 
             // 3. 插入到新父级并重新排列
             List<TDomain> targetSiblings = await repository.FindAsync(m => m.ParentID == targetParentID, m => m.Index);
+            // 排除源对象（EF Core change tracking 可能导致修改 ParentID 后的源对象被查询出来）
+            targetSiblings.RemoveAll(m => m.ID == model.SourceID);
 
             // 确定插入位置
             int insertIndex = targetSiblings.Count;
@@ -139,26 +148,29 @@ public static partial class ServiceImplHelper
             }
         }
 
-        // 如果没有指定目标，则放到末尾
-        if (targetIndex == -1)
-        {
-            targetIndex = domains.Count - 1;
-        }
-
         if (sourceIndex == -1) throw new MergeBlockModuleException("源对象不存在");
 
         // 移除源对象
         TDomain sourceDomain = domains[sourceIndex];
         domains.RemoveAt(sourceIndex);
 
-        // 移除后目标位置可能需要调整
-        if (sourceIndex < targetIndex)
+        int insertIndex;
+        if (targetIndex == -1)
         {
-            targetIndex--;
+            // 没有指定目标或目标不在列表中，直接放到末尾
+            insertIndex = domains.Count;
         }
+        else
+        {
+            // 移除后目标位置可能需要调整
+            if (sourceIndex < targetIndex)
+            {
+                targetIndex--;
+            }
 
-        // 计算目标插入位置：Before=true放到目标之前，Before=false放到目标之后
-        int insertIndex = model.Before ? targetIndex : targetIndex + 1;
+            // 计算目标插入位置：Before=true放到目标之前，Before=false放到目标之后
+            insertIndex = model.Before ? targetIndex : targetIndex + 1;
+        }
 
         // 执行移动
         domains.Insert(insertIndex, sourceDomain);
@@ -191,6 +203,8 @@ public static partial class ServiceImplHelper
         Type domainType = typeof(TDomain);
         foreach (string groupProperty in groupProperties)
         {
+            // ParentID 是树形结构属性，跨父级移动时天然不同，不参与分组验证
+            if (groupProperty == nameof(ITreeDomain.ParentID)) continue;
             PropertyInfo? propertyInfo = domainType.GetProperty(groupProperty) ?? throw new ArgumentException($"属性名称{groupProperty}不存在");
             object? sourceValue = propertyInfo.GetValue(sourceDomain);
             object? targetValue = propertyInfo.GetValue(targetParentDomain);
