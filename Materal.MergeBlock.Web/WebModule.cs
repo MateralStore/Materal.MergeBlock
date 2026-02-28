@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Serialization;
 using System.Reflection;
 
 namespace Materal.MergeBlock.Web

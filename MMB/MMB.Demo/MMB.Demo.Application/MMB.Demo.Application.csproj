@@ -5,7 +5,6 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.Authorization.Abstractions\Materal.MergeBlock.Authorization.Abstractions.csproj" />
-		<ProjectReference Include="..\..\..\Materal.MergeBlock.Consul.Abstractions\Materal.MergeBlock.Consul.Abstractions.csproj" />
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.Oscillator.Abstractions\Materal.MergeBlock.Oscillator.Abstractions.csproj" />
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.Web.Abstractions\Materal.MergeBlock.Web.Abstractions.csproj" />
 		<ProjectReference Include="..\..\MMB.Core\MMB.Core.Application\MMB.Core.Application.csproj" />
@@ -15,5 +14,8 @@
 		<None Update="MMB.Demo.Application.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Hubs\" />
 	</ItemGroup>
 </Project>
