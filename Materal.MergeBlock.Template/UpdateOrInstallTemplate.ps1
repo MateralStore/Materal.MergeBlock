@@ -1,72 +1,40 @@
-# ÉèÖÃ´íÎó´¦Àí
+# è®¾ç½®é”™è¯¯å¤„ç†
 $ErrorActionPreference = "Stop"
 
-# ÉèÖÃ¿ØÖÆÌ¨±àÂëÎª UTF-8
+# è®¾ç½®æ§åˆ¶å°ç¼–ç ä¸º UTF-8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Materal Ä£°å¸üĞÂ/°²×°½Å±¾" -ForegroundColor Cyan
+Write-Host "Materal æ¨¡æ¿æ›´æ–°/å®‰è£…è„šæœ¬" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# ¶¨ÒåÄ£°åÃû³Æ
+# å®šä¹‰æ¨¡æ¿åç§°
 $templates = @(
     "Materal.MergeBlock.CoreTemplate",
     "Materal.MergeBlock.ModuleTemplate"
 )
-
-# 1. ²éÑ¯µ±Ç°ÒÑ°²×°µÄÄ£°åÁĞ±í
-Write-Host "²½Öè 1: ²éÑ¯µ±Ç°ÒÑ°²×°µÄÄ£°å..." -ForegroundColor Yellow
-dotnet new list | Out-Null
-Write-Host "ÒÑ°²×°µÄÄ£°åÁĞ±íÒÑ»ñÈ¡" -ForegroundColor Green
-Write-Host ""
-
-# 2. ¼ì²é²¢Ğ¶ÔØÒÑ°²×°µÄÄ£°å
-Write-Host "²½Öè 2: ¼ì²é²¢Ğ¶ÔØÒÑ´æÔÚµÄÄ£°å..." -ForegroundColor Yellow
-foreach ($template in $templates) {
-    $templatePath = Join-Path $PSScriptRoot $template
-    $absolutePath = (Resolve-Path $templatePath -ErrorAction SilentlyContinue).Path
-    
-    if (-not $absolutePath) {
-        $absolutePath = $templatePath
-    }
-    
-    Write-Host "  ³¢ÊÔĞ¶ÔØ: $template" -ForegroundColor Cyan
-    
-    $ErrorActionPreference = "Continue"
-    dotnet new uninstall "`"$absolutePath`"" 2>&1 | Out-Null
-    $exitCode = $LASTEXITCODE
-    $ErrorActionPreference = "Stop"
-    
-    if ($exitCode -eq 0) {
-        Write-Host "  [?] ÒÑĞ¶ÔØ: $template" -ForegroundColor Green
-    } else {
-        Write-Host "  [i] Ä£°åÎ´°²×°»òÒÑĞ¶ÔØ£¬½«¼ÌĞø°²×°" -ForegroundColor Gray
-    }
-}
-Write-Host ""
-
-# 3. °²×°µ±Ç°Ä¿Â¼ÏÂµÄÄ£°å
-Write-Host "²½Öè 3: °²×°Ä£°å..." -ForegroundColor Yellow
+# 1. å®‰è£…å½“å‰ç›®å½•ä¸‹çš„æ¨¡æ¿
+Write-Host "å®‰è£…æ¨¡æ¿..." -ForegroundColor Yellow
 foreach ($template in $templates) {
     $templatePath = Join-Path $PSScriptRoot $template
     
     if (Test-Path $templatePath) {
-        Write-Host "  ÕıÔÚ°²×°: $template" -ForegroundColor Cyan
-        $result = dotnet new install $templatePath 2>&1
+        Write-Host "  æ­£åœ¨å®‰è£…: $template" -ForegroundColor Cyan
+        $result = dotnet new install $templatePath --force 2>&1
         
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "  [?] °²×°³É¹¦: $template" -ForegroundColor Green
+            Write-Host "  [?] å®‰è£…æˆåŠŸ: $template" -ForegroundColor Green
         } else {
-            Write-Host "  [?] °²×°Ê§°Ü: $template" -ForegroundColor Red
-            Write-Host "  ´íÎóĞÅÏ¢: $result" -ForegroundColor Red
+            Write-Host "  [?] å®‰è£…å¤±è´¥: $template" -ForegroundColor Red
+            Write-Host "  é”™è¯¯ä¿¡æ¯: $result" -ForegroundColor Red
         }
     } else {
-        Write-Host "  [?] Ä£°åÄ¿Â¼²»´æÔÚ: $templatePath" -ForegroundColor Red
+        Write-Host "  [?] æ¨¡æ¿ç›®å½•ä¸å­˜åœ¨: $templatePath" -ForegroundColor Red
     }
 }
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Ä£°å¸üĞÂ/°²×°Íê³É!" -ForegroundColor Green
+Write-Host "æ¨¡æ¿æ›´æ–°/å®‰è£…å®Œæˆ!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
