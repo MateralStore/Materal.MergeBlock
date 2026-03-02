@@ -194,7 +194,7 @@ public partial class {{domain.Name}}DTO : {{domain.Name}}ListDTO, IDTO
     /// <returns></returns>
     private static string RenderTemplate(Template template, GeneratorCodeContext context, DomainModel domain, DomainModel? targetDomain)
     {
-        var domainViewModel = new DomainViewModel
+        DomainViewModel domainViewModel = new()
         {
             Name = domain.Name,
             Annotation = domain.Annotation
@@ -211,8 +211,8 @@ public partial class {{domain.Name}}DTO : {{domain.Name}}ListDTO, IDTO
                     Annotation = p.Annotation,
                     Initializer = p.Initializer,
                     CanNull = p.CanNull,
-                    IncludeInListDto = !p.HasAttribute<NotDTOAttribute>() && !p.HasAttribute<NotListDTOAttribute>(),
-                    IncludeInDto = p.HasAttribute<NotDTOAttribute>() && !p.HasAttribute<NotListDTOAttribute>(),
+                    IncludeInListDto = !p.HasAttribute<NotListDTOAttribute>(),
+                    IncludeInDto = !p.HasAttribute<NotDTOAttribute>() && p.HasAttribute<NotListDTOAttribute>(),
                     VerificationAttributesCode = p.GetVerificationAttributesCode()
                 })];
         }

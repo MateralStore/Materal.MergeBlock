@@ -13,6 +13,7 @@ public class Program
     {
 #if DEBUG
         await GeneratorCodeAsync(@"E:\Project\Materal\Materal\Materal.MergeBlock\MMB\MMB.Demo");
+        //await GeneratorCodeAsync(@"E:\Project\GDB\YueHeShe\Server\YueHeShe.Main");
 #endif
         Option<string> pathOption = new("--ModulePath", "指定模块路径");
         pathOption.AddAlias("-m");

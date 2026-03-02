@@ -5,9 +5,6 @@ namespace MMB.Demo.Application.Hubs;
 /// <summary>
 /// 测试用Hub
 /// </summary>
-/// <remarks>
-/// 构造函数
-/// </remarks>
 public class TestHub(IHubContext<TestHub> hubContext) : Hub
 {
     /// <summary>
