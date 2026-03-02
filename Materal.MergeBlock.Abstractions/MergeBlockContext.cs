@@ -6,6 +6,10 @@ namespace Materal.MergeBlock.Abstractions
     public class MergeBlockContext
     {
         /// <summary>
+        /// Args
+        /// </summary>
+        public string[] Args { get; set; } = [];
+        /// <summary>
         /// MergeBlock程序集
         /// </summary>
         public IList<Assembly> MergeBlockAssemblies { get; set; } = [];

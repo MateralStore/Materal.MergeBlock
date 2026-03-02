@@ -12,10 +12,11 @@ namespace Materal.MergeBlock.Extensions
         /// 添加MergeBlock
         /// </summary>
         /// <param name="builder"></param>
+        /// <param name="args"></param>
         /// <returns></returns>
-        public static IHostApplicationBuilder AddMergeBlockCore(this IHostApplicationBuilder builder)
+        public static IHostApplicationBuilder AddMergeBlockCore(this IHostApplicationBuilder builder, params string[] args)
         {
-            builder.Services.AddMergeBlockCore(builder.Configuration);
+            builder.Services.AddMergeBlockCore(builder.Configuration, args);
             return builder;
         }
         /// <summary>
@@ -23,22 +24,24 @@ namespace Materal.MergeBlock.Extensions
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
+        /// <param name="args"></param>
         /// <returns></returns>
         /// <exception cref="MergeBlockException"></exception>
-        public static IServiceCollection AddMergeBlockCore(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddMergeBlockCore(this IServiceCollection services, IConfiguration configuration, params string[] args)
         {
             services.Replace(ServiceDescriptor.Singleton(configuration));
             services.Replace(ServiceDescriptor.Singleton(services));
-            services.AddMergeBlockCore();
+            services.AddMergeBlockCore(args);
             return services;
         }
         /// <summary>
         /// 添加MergeBlock
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="args"></param>
         /// <returns></returns>
         /// <exception cref="MergeBlockException"></exception>
-        private static IServiceCollection AddMergeBlockCore(this IServiceCollection services)
+        private static IServiceCollection AddMergeBlockCore(this IServiceCollection services, params string[] args)
         {
             MateralServices.Services = services;
             services.AddAutoService(typeof(Plugin).Assembly);
@@ -56,6 +59,7 @@ namespace Materal.MergeBlock.Extensions
             pluginManager.LoadModules();
             MergeBlockContext mergeBlockContext = new()
             {
+                Args = args,
                 ModuleDescriptors = ModuleLoader.ModuleDescriptors,
                 Plugins = [.. pluginManager.Plugins],
                 MergeBlockAssemblies = [.. pluginManager.Plugins.SelectMany(p => p.Assemblies)]

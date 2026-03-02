@@ -44,7 +44,7 @@ namespace Materal.MergeBlock.WindowsService
                 builder.Configuration.AddJsonFile("appsettings.Development.json", true, true);
             }
 #endif
-            builder.AddMergeBlockCore();
+            builder.AddMergeBlockCore(args);
             builder.Services.AddWindowsService(options);
             OnConfigureServices?.Invoke(builder.Services);
             IHost app = builder.Build();

@@ -32,7 +32,7 @@ namespace Materal.MergeBlock
                 builder.Configuration.AddJsonFile("appsettings.Development.json", true, true);
             }
 #endif
-            builder.AddMergeBlockCore();
+            builder.AddMergeBlockCore(args);
             OnConfigureServices?.Invoke(builder.Services);
             IHost app = builder.Build();
             app.UseMergeBlock();

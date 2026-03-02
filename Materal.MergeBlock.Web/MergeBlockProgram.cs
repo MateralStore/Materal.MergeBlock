@@ -28,7 +28,7 @@ namespace Materal.MergeBlock.Web
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             builder.AddMateralServiceProvider();
             builder.Services.AddSingleton(builder);
-            builder.AddMergeBlockCore();
+            builder.AddMergeBlockCore(args);
             OnConfigureServices?.Invoke(builder.Services);
             WebApplication app = builder.Build();
             app.UseMergeBlock();
