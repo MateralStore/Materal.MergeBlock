@@ -1,7 +1,6 @@
 using Materal.MergeBlock.Web.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
 
@@ -94,18 +93,5 @@ public class WebModule() : MergeBlockModule("Web模块")
         AdvancedContext advancedContext = context.ServiceProvider.GetRequiredService<AdvancedContext>();
         if (advancedContext.App is not WebApplication webApplication) return;
         webApplication.MapControllers();
-        AutoUseHttpsRedirection(webApplication);
-    }
-    /// <summary>
-    /// 自动使用Https重定向
-    /// </summary>
-    /// <param name="app"></param>
-    private static void AutoUseHttpsRedirection(WebApplication app)
-    {
-        ListeningUris urlsList = app.Services.GetRequiredService<ListeningUris>();
-        if (urlsList.Any(m => m.Scheme == "https"))
-        {
-            app.UseHttpsRedirection(); //启用HTTPS重定向
-        }
     }
 }
