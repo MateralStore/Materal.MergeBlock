@@ -396,7 +396,7 @@ public partial class {{ domain.Name }}Controller
     /// <summary>
     /// 获得树列表
     /// </summary>
-    /// <param name=""""parentID""""></param>
+    /// <param name=""parentID""></param>
     /// <returns></returns>
     [HttpGet]
     public async Task<ResultModel<List<{{ domain.Name}}TreeListDTO>>> GetTreeListAsync(Guid? parentID)
