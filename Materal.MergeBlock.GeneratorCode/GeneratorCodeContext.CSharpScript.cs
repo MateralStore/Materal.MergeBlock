@@ -51,8 +51,15 @@ public partial class GeneratorCodeContext
         {
             string fileContent = File.ReadAllText(file.FullName);
             if (!IsGeneratorCodePlugScriptCode(fileContent)) continue;
-            IMergeBlockGeneratorCodePlug plug = BuildPlug(fileContent);
-            result.Add(plug);
+            try
+            {
+                IMergeBlockGeneratorCodePlug plug = BuildPlug(fileContent);
+                result.Add(plug);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"{file.FullName}插件编译失败", ex);
+            }
         }
         foreach (DirectoryInfo item in directoryInfo.GetDirectories())
         {

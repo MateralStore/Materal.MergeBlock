@@ -49,6 +49,11 @@ public class DTOGeneratorCodePlug : IMergeBlockGeneratorCodePlug
         public bool IncludeInDto { get; set; }
 
         /// <summary>
+        /// 是否带有DTOText特性
+        /// </summary>
+        public bool HasDTOText { get; set; }
+
+        /// <summary>
         /// 验证特性代码（如：[Required(ErrorMessage = "名称不能为空")]）
         /// </summary>
         public string? VerificationAttributesCode { get; set; }
@@ -105,6 +110,13 @@ public partial class {{domain.Name}}ListDTO : IListDTO
     {{property.VerificationAttributesCode}}
     {{- end}}
     public {{property.PredefinedType}} {{property.Name}} { get; set; }{{if property.Initializer != null}} = {{property.Initializer}};{{end}}
+    {{- if property.HasDTOText}}
+
+    /// <summary>
+    /// {{property.Annotation}}文本
+    /// </summary>
+    public string{{if property.CanNull}}?{{end}} {{property.Name}}Text => {{property.Name}}{{if property.CanNull}}?.GetDescriptionOrNull(){{else}}.GetDescription(){{end}};
+    {{- end}}
         {{- end}}
     {{- end}}
 }
@@ -129,6 +141,13 @@ public partial class {{domain.Name}}DTO : {{domain.Name}}ListDTO, IDTO
     {{property.VerificationAttributesCode}}
     {{- end}}
     public {{property.PredefinedType}} {{property.Name}} { get; set; }{{if property.Initializer != null}} = {{property.Initializer}};{{end}}
+    {{- if property.HasDTOText}}
+
+    /// <summary>
+    /// {{property.Annotation}}文本
+    /// </summary>
+    public string{{if property.CanNull}}?{{end}} {{property.Name}}Text => {{property.Name}}{{if property.CanNull}}?.GetDescriptionOrNull(){{else}}.GetDescription(){{end}};
+    {{- end}}
         {{- end}}
     {{- end}}
 }
@@ -213,6 +232,7 @@ public partial class {{domain.Name}}DTO : {{domain.Name}}ListDTO, IDTO
                     CanNull = p.CanNull,
                     IncludeInListDto = !p.HasAttribute<NotListDTOAttribute>(),
                     IncludeInDto = !p.HasAttribute<NotDTOAttribute>() && p.HasAttribute<NotListDTOAttribute>(),
+                    HasDTOText = p.HasAttribute<DTOTextAttribute>(),
                     VerificationAttributesCode = p.GetVerificationAttributesCode()
                 })];
         }
