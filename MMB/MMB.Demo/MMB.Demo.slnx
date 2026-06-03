@@ -11,5 +11,6 @@
   <Project Path="MMB.Demo.Abstractions/MMB.Demo.Abstractions.csproj" />
   <Project Path="MMB.Demo.Application/MMB.Demo.Application.csproj" />
   <Project Path="MMB.Demo.Repository/MMB.Demo.Repository.csproj" />
+  <Project Path="MMB.Demo.Test/MMB.Demo.Test.csproj" />
   <Project Path="MMB.Demo.WebAPI/MMB.Demo.WebAPI.csproj" />
 </Solution>

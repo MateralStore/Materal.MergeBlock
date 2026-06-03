@@ -4,6 +4,9 @@
 		<TargetFramework>net10.0</TargetFramework>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+		<PackageReference Include="OpenAI" />
+		<ProjectReference Include="..\..\..\Materal.MergeBlock.AI.Web\Materal.MergeBlock.AI.Web.csproj" />
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.Authorization.Abstractions\Materal.MergeBlock.Authorization.Abstractions.csproj" />
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.Oscillator.Abstractions\Materal.MergeBlock.Oscillator.Abstractions.csproj" />
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.Web.Abstractions\Materal.MergeBlock.Web.Abstractions.csproj" />

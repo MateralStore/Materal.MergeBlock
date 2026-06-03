@@ -1,0 +1,14 @@
+global using Materal.MergeBlock.AI;
+global using Materal.MergeBlock.AI.Abstractions.Auditing;
+global using Materal.MergeBlock.AI.Abstractions.Context;
+global using Materal.MergeBlock.AI.Abstractions.Options;
+global using Materal.MergeBlock.AI.Abstractions.Prompts;
+global using Materal.MergeBlock.AI.Abstractions.Tools;
+global using Materal.MergeBlock.AI.Auditing;
+global using Materal.MergeBlock.AI.Extensions;
+global using Materal.MergeBlock.AI.Prompts;
+global using Materal.MergeBlock.AI.Tools;
+global using Materal.MergeBlock.Abstractions;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using Microsoft.VisualStudio.TestTools.UnitTesting;

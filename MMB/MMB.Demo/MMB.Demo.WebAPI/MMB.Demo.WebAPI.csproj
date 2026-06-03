@@ -11,6 +11,7 @@
 		</PackageReference>
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\..\Materal.COA\Materal.MergeBlock.COA\Materal.MergeBlock.COA.csproj" />
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.AccessLog\Materal.MergeBlock.AccessLog.csproj" />
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.Authorization\Materal.MergeBlock.Authorization.csproj" />
 		<ProjectReference Include="..\..\..\Materal.MergeBlock.Cors\Materal.MergeBlock.Cors.csproj" />
