@@ -24,6 +24,34 @@ namespace Materal.MergeBlock.AccessLog
             LogLevel logLevel = LogLevel.Information;
             Exception? exception = null;
             Stream originalBody = context.Response.Body;
+            if (ShouldSkipResponseBodyCapture(context))
+            {
+                Stopwatch streamingStopwatch = Stopwatch.StartNew();
+                try
+                {
+                    await next(context);
+                    streamingStopwatch.Stop();
+                    endTime = DateTime.Now;
+                    response = new ResponseModel(context.Response);
+                    logLevel = GetLogLevel(context.Response.StatusCode);
+                }
+                catch (Exception ex)
+                {
+                    streamingStopwatch.Stop();
+                    response = new ResponseModel(ex);
+                    exception = ex;
+                    throw;
+                }
+                finally
+                {
+                    if (response is not null)
+                    {
+                        accessLogService.WriteAccessLog(startTime, endTime, logLevel, request, response, streamingStopwatch.ElapsedMilliseconds, exception);
+                    }
+                    context.Response.Body = originalBody;
+                }
+                return;
+            }
             using MemoryStream memStream = new();
             context.Response.Body = memStream;
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -37,22 +65,7 @@ namespace Materal.MergeBlock.AccessLog
                 response = new ResponseModel(context.Response, memStream);
                 memStream.Position = 0;
                 await memStream.CopyToAsync(originalBody);
-                logLevel = context.Response.StatusCode switch
-                {
-                    StatusCodes.Status200OK or
-                    StatusCodes.Status201Created or
-                    StatusCodes.Status202Accepted or
-                    StatusCodes.Status203NonAuthoritative or
-                    StatusCodes.Status204NoContent or
-                    StatusCodes.Status205ResetContent or
-                    StatusCodes.Status206PartialContent or
-                    StatusCodes.Status207MultiStatus or
-                    StatusCodes.Status208AlreadyReported or
-                    StatusCodes.Status401Unauthorized or
-                    StatusCodes.Status404NotFound => LogLevel.Information,
-                    >= StatusCodes.Status500InternalServerError => LogLevel.Error,
-                    _ => LogLevel.Warning,
-                };
+                logLevel = GetLogLevel(context.Response.StatusCode);
             }
             catch (Exception ex)
             {
@@ -70,5 +83,24 @@ namespace Materal.MergeBlock.AccessLog
                 context.Response.Body = originalBody;
             }
         }
+        private static bool ShouldSkipResponseBodyCapture(HttpContext context)
+            => context.Request.Headers.Accept.Any(static value => value?.Contains("text/event-stream", StringComparison.OrdinalIgnoreCase) == true);
+        private static LogLevel GetLogLevel(int statusCode)
+            => statusCode switch
+            {
+                StatusCodes.Status200OK or
+                StatusCodes.Status201Created or
+                StatusCodes.Status202Accepted or
+                StatusCodes.Status203NonAuthoritative or
+                StatusCodes.Status204NoContent or
+                StatusCodes.Status205ResetContent or
+                StatusCodes.Status206PartialContent or
+                StatusCodes.Status207MultiStatus or
+                StatusCodes.Status208AlreadyReported or
+                StatusCodes.Status401Unauthorized or
+                StatusCodes.Status404NotFound => LogLevel.Information,
+                >= StatusCodes.Status500InternalServerError => LogLevel.Error,
+                _ => LogLevel.Warning,
+            };
     }
 }

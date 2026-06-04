@@ -35,6 +35,19 @@ namespace Materal.MergeBlock.AccessLog.Models
         /// 构造函数
         /// </summary>
         /// <param name="httpResponse"></param>
+        public ResponseModel(HttpResponse httpResponse)
+        {
+            StatusCode = httpResponse.StatusCode;
+            Headers = [];
+            foreach (KeyValuePair<string, StringValues> item in httpResponse.Headers)
+            {
+                Headers.TryAdd(item.Key, item.Value.ToString());
+            }
+        }
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="httpResponse"></param>
         /// <param name="bodyStream"></param>
         public ResponseModel(HttpResponse httpResponse, MemoryStream bodyStream)
         {

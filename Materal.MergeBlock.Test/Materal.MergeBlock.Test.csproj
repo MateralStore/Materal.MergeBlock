@@ -6,5 +6,8 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Materal.MergeBlock.GeneratorCode\Materal.MergeBlock.GeneratorCode.csproj" />
+	  <ProjectReference Include="..\Materal.MergeBlock.AccessLog\Materal.MergeBlock.AccessLog.csproj" />
+	  <ProjectReference Include="..\Materal.MergeBlock.AI.Web\Materal.MergeBlock.AI.Web.csproj" />
+	  <ProjectReference Include="..\Materal.MergeBlock.Swagger\Materal.MergeBlock.Swagger.csproj" />
 	</ItemGroup>
 </Project>
