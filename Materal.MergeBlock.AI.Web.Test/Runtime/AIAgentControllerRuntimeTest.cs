@@ -122,10 +122,11 @@ public class AIAgentControllerRuntimeTest
         });
 
         string sse = ReadResponse(controller);
-        StringAssert.Contains(sse, "event: tool_call.resumed");
+        StringAssert.Contains(sse, "event: tool_result.completed");
         StringAssert.Contains(sse, "event: message.delta");
         StringAssert.Contains(sse, "event: run.completed");
         Assert.AreEqual(1, stateStore.ToolResults.Count);
+        Assert.AreEqual(AIToolCallStatus.Completed, stateStore.Events.Single(m => m.Event == "tool_result.completed").Payload["status"]);
         Assert.AreEqual(AgentRunStatus.Completed, stateStore.CompletedStatuses["run_001"]);
         CollectionAssert.Contains(stateStore.Audits.Select(m => m.Status).ToList(), AIToolCallStatus.Completed);
     }
@@ -196,6 +197,9 @@ public class AIAgentControllerRuntimeTest
         public List<AgentStreamEvent> Events { get; } = [];
         public List<RemoteToolPendingCall> ToolCalls { get; } = [];
         public List<RemoteToolResultItem> ToolResults { get; } = [];
+        public List<AgentMessageRecord> Messages { get; } = [];
+        public List<ScriptReviewResult> ScriptReviews { get; } = [];
+        public List<AgentCheckpointRecord> Checkpoints { get; } = [];
         public List<AIToolCallAuditContext> Audits { get; } = [];
         public Dictionary<string, string> CompletedStatuses { get; } = new(StringComparer.Ordinal);
         public Task InitializeAsync() => Task.CompletedTask;
@@ -221,6 +225,43 @@ public class AIAgentControllerRuntimeTest
             ToolResults.Add(toolResult);
             return Task.CompletedTask;
         }
+        public Task RecordMessageAsync(AgentMessageRecord message)
+        {
+            Messages.Add(message);
+            return Task.CompletedTask;
+        }
+        public Task RecordScriptReviewAsync(ScriptReviewResult scriptReviewResult)
+        {
+            ScriptReviews.Add(scriptReviewResult);
+            return Task.CompletedTask;
+        }
+        public Task RecordCheckpointAsync(string runId, IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?>? modelConfigSummary = null)
+        {
+            Checkpoints.Add(new AgentCheckpointRecord
+            {
+                RunId = runId,
+                Metadata = metadata,
+                ModelConfigSummary = modelConfigSummary
+            });
+            return Task.CompletedTask;
+        }
+        public Task<AgentSessionTrace> GetSessionTraceAsync(string threadId) => Task.FromResult(new AgentSessionTrace
+        {
+            ThreadId = threadId,
+            Runs = [Trace.Run]
+        });
+        public Task<AgentRunRecord> GetRunAsync(string runId) => Task.FromResult(Trace.Run);
+        public Task<IReadOnlyList<AgentDebugTraceSummary>> ListDebugTracesAsync() => Task.FromResult<IReadOnlyList<AgentDebugTraceSummary>>(
+        [
+            new AgentDebugTraceSummary
+            {
+                TraceId = Trace.Run.RunId,
+                RunId = Trace.Run.RunId,
+                ThreadId = Trace.Run.ThreadId,
+                Status = Trace.Run.Status,
+                ErrorMessage = Trace.Run.ErrorMessage
+            }
+        ]);
         public Task<AgentRunTrace> GetRunTraceAsync(string runId) => Task.FromResult(Trace);
         public Task AuditAsync(AIToolCallAuditContext context)
         {

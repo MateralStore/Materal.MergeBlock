@@ -136,6 +136,122 @@ public class SqliteAIAgentStateStore(string databasePath) : IAIAgentStateStore
             });
     }
     /// <inheritdoc />
+    public async Task RecordMessageAsync(AgentMessageRecord message)
+    {
+        string messageId = string.IsNullOrWhiteSpace(message.Id) ? Guid.NewGuid().ToString("N") : message.Id;
+        await ExecuteNonQueryAsync("""
+            insert into ai_agent_messages(id, thread_id, run_id, role, content_json, created_at)
+            values($id, $thread_id, $run_id, $role, $content_json, $created_at);
+            """,
+            command =>
+            {
+                command.Parameters.AddWithValue("$id", messageId);
+                command.Parameters.AddWithValue("$thread_id", message.ThreadId);
+                command.Parameters.AddWithValue("$run_id", message.RunId);
+                command.Parameters.AddWithValue("$role", message.Role);
+                command.Parameters.AddWithValue("$content_json", Serialize(message.Content) ?? "{}");
+                command.Parameters.AddWithValue("$created_at", GetNow());
+            });
+    }
+    /// <inheritdoc />
+    public async Task RecordScriptReviewAsync(ScriptReviewResult scriptReviewResult)
+    {
+        string reviewId = string.IsNullOrWhiteSpace(scriptReviewResult.Id) ? Guid.NewGuid().ToString("N") : scriptReviewResult.Id;
+        await ExecuteNonQueryAsync("""
+            insert into ai_agent_script_reviews(id, thread_id, run_id, tool_call_id, approved, reason, risk_level, created_at)
+            values($id, $thread_id, $run_id, $tool_call_id, $approved, $reason, $risk_level, $created_at);
+            """,
+            command =>
+            {
+                command.Parameters.AddWithValue("$id", reviewId);
+                command.Parameters.AddWithValue("$thread_id", scriptReviewResult.ThreadId);
+                command.Parameters.AddWithValue("$run_id", scriptReviewResult.RunId);
+                command.Parameters.AddWithValue("$tool_call_id", scriptReviewResult.ToolCallId);
+                command.Parameters.AddWithValue("$approved", scriptReviewResult.Approved ? 1 : 0);
+                command.Parameters.AddWithValue("$reason", (object?)scriptReviewResult.Reason ?? DBNull.Value);
+                command.Parameters.AddWithValue("$risk_level", (object?)scriptReviewResult.RiskLevel ?? DBNull.Value);
+                command.Parameters.AddWithValue("$created_at", GetNow());
+            });
+    }
+    /// <inheritdoc />
+    public async Task RecordCheckpointAsync(string runId, IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?>? modelConfigSummary = null)
+    {
+        await ExecuteNonQueryAsync("""
+            insert into ai_agent_checkpoints(run_id, metadata_json, model_config_summary_json, updated_at)
+            values($run_id, $metadata_json, $model_config_summary_json, $updated_at)
+            on conflict(run_id) do update set
+                metadata_json = excluded.metadata_json,
+                model_config_summary_json = excluded.model_config_summary_json,
+                updated_at = excluded.updated_at;
+            """,
+            command =>
+            {
+                command.Parameters.AddWithValue("$run_id", runId);
+                command.Parameters.AddWithValue("$metadata_json", Serialize(metadata) ?? "{}");
+                command.Parameters.AddWithValue("$model_config_summary_json", (object?)Serialize(modelConfigSummary) ?? DBNull.Value);
+                command.Parameters.AddWithValue("$updated_at", GetNow());
+            });
+    }
+    /// <inheritdoc />
+    public async Task<AgentSessionTrace> GetSessionTraceAsync(string threadId)
+    {
+        await using SqliteConnection connection = new(_connectionString);
+        await connection.OpenAsync();
+        List<AgentRunRecord> runs = [];
+        await using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = """
+            select run_id, thread_id, status, error_message
+            from ai_agent_runs
+            where thread_id = $thread_id
+            order by started_at asc, run_id asc;
+            """;
+        command.Parameters.AddWithValue("$thread_id", threadId);
+        await using SqliteDataReader reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            runs.Add(ReadRunRecord(reader));
+        }
+        return new AgentSessionTrace
+        {
+            ThreadId = threadId,
+            Runs = runs
+        };
+    }
+    /// <inheritdoc />
+    public async Task<AgentRunRecord> GetRunAsync(string runId)
+    {
+        await using SqliteConnection connection = new(_connectionString);
+        await connection.OpenAsync();
+        return await GetRunAsync(connection, runId);
+    }
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<AgentDebugTraceSummary>> ListDebugTracesAsync()
+    {
+        await using SqliteConnection connection = new(_connectionString);
+        await connection.OpenAsync();
+        List<AgentDebugTraceSummary> result = [];
+        await using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = """
+            select run_id, thread_id, status, error_message
+            from ai_agent_runs
+            order by started_at desc, run_id desc;
+            """;
+        await using SqliteDataReader reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            string runId = reader.GetString(0);
+            result.Add(new AgentDebugTraceSummary
+            {
+                TraceId = runId,
+                RunId = runId,
+                ThreadId = reader.GetString(1),
+                Status = reader.GetString(2),
+                ErrorMessage = reader.IsDBNull(3) ? null : reader.GetString(3)
+            });
+        }
+        return result;
+    }
+    /// <inheritdoc />
     public async Task<AgentRunTrace> GetRunTraceAsync(string runId)
     {
         await using SqliteConnection connection = new(_connectionString);
@@ -143,11 +259,17 @@ public class SqliteAIAgentStateStore(string databasePath) : IAIAgentStateStore
         AgentRunRecord run = await GetRunAsync(connection, runId);
         List<AgentStreamEvent> events = await GetEventsAsync(connection, runId);
         List<RemoteToolPendingCall> toolCalls = await GetToolCallsAsync(connection, runId);
+        List<AgentMessageRecord> messages = await GetMessagesAsync(connection, runId);
+        List<ScriptReviewResult> scriptReviews = await GetScriptReviewsAsync(connection, runId);
+        AgentCheckpointRecord? checkpoint = await GetCheckpointAsync(connection, runId);
         return new AgentRunTrace
         {
             Run = run,
             Events = events,
-            ToolCalls = toolCalls
+            ToolCalls = toolCalls,
+            Messages = messages,
+            ScriptReviews = scriptReviews,
+            Checkpoint = checkpoint
         };
     }
     private async Task<AgentRunRecord> GetRunAsync(SqliteConnection connection, string runId)
@@ -160,14 +282,15 @@ public class SqliteAIAgentStateStore(string databasePath) : IAIAgentStateStore
         {
             throw new KeyNotFoundException($"未找到AI Agent运行记录: {runId}");
         }
-        return new AgentRunRecord
-        {
-            RunId = reader.GetString(0),
-            ThreadId = reader.GetString(1),
-            Status = reader.GetString(2),
-            ErrorMessage = reader.IsDBNull(3) ? null : reader.GetString(3)
-        };
+        return ReadRunRecord(reader);
     }
+    private static AgentRunRecord ReadRunRecord(SqliteDataReader reader) => new()
+    {
+        RunId = reader.GetString(0),
+        ThreadId = reader.GetString(1),
+        Status = reader.GetString(2),
+        ErrorMessage = reader.IsDBNull(3) ? null : reader.GetString(3)
+    };
     private async Task<List<AgentStreamEvent>> GetEventsAsync(SqliteConnection connection, string runId)
     {
         List<AgentStreamEvent> result = [];
@@ -221,6 +344,76 @@ public class SqliteAIAgentStateStore(string databasePath) : IAIAgentStateStore
         }
         return result;
     }
+    private async Task<List<AgentMessageRecord>> GetMessagesAsync(SqliteConnection connection, string runId)
+    {
+        List<AgentMessageRecord> result = [];
+        await using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = """
+            select id, thread_id, run_id, role, content_json
+            from ai_agent_messages
+            where run_id = $run_id
+            order by created_at asc, id asc;
+            """;
+        command.Parameters.AddWithValue("$run_id", runId);
+        await using SqliteDataReader reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            result.Add(new AgentMessageRecord
+            {
+                Id = reader.GetString(0),
+                ThreadId = reader.GetString(1),
+                RunId = reader.GetString(2),
+                Role = reader.GetString(3),
+                Content = DeserializeDictionary(reader.GetString(4))
+            });
+        }
+        return result;
+    }
+    private async Task<List<ScriptReviewResult>> GetScriptReviewsAsync(SqliteConnection connection, string runId)
+    {
+        List<ScriptReviewResult> result = [];
+        await using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = """
+            select id, thread_id, run_id, tool_call_id, approved, reason, risk_level
+            from ai_agent_script_reviews
+            where run_id = $run_id
+            order by created_at asc, id asc;
+            """;
+        command.Parameters.AddWithValue("$run_id", runId);
+        await using SqliteDataReader reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            result.Add(new ScriptReviewResult
+            {
+                Id = reader.GetString(0),
+                ThreadId = reader.GetString(1),
+                RunId = reader.GetString(2),
+                ToolCallId = reader.GetString(3),
+                Approved = reader.GetInt32(4) == 1,
+                Reason = reader.IsDBNull(5) ? null : reader.GetString(5),
+                RiskLevel = reader.IsDBNull(6) ? null : reader.GetString(6)
+            });
+        }
+        return result;
+    }
+    private async Task<AgentCheckpointRecord?> GetCheckpointAsync(SqliteConnection connection, string runId)
+    {
+        await using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = """
+            select run_id, metadata_json, model_config_summary_json
+            from ai_agent_checkpoints
+            where run_id = $run_id;
+            """;
+        command.Parameters.AddWithValue("$run_id", runId);
+        await using SqliteDataReader reader = await command.ExecuteReaderAsync();
+        if (!await reader.ReadAsync()) return null;
+        return new AgentCheckpointRecord
+        {
+            RunId = reader.GetString(0),
+            Metadata = DeserializeDictionary(reader.GetString(1)),
+            ModelConfigSummary = reader.IsDBNull(2) ? null : DeserializeDictionary(reader.GetString(2))
+        };
+    }
     private async Task ExecuteNonQueryAsync(string sql, Action<SqliteCommand> configure)
     {
         await using SqliteConnection connection = new(_connectionString);
@@ -272,6 +465,36 @@ public class SqliteAIAgentStateStore(string databasePath) : IAIAgentStateStore
               error_json text,
               created_at text not null,
               completed_at text
+            );
+            """;
+        yield return """
+            create table if not exists ai_agent_messages (
+              id text primary key,
+              thread_id text not null,
+              run_id text not null,
+              role text not null,
+              content_json text not null,
+              created_at text not null
+            );
+            """;
+        yield return """
+            create table if not exists ai_agent_script_reviews (
+              id text primary key,
+              thread_id text not null,
+              run_id text not null,
+              tool_call_id text not null,
+              approved integer not null,
+              reason text,
+              risk_level text,
+              created_at text not null
+            );
+            """;
+        yield return """
+            create table if not exists ai_agent_checkpoints (
+              run_id text primary key,
+              metadata_json text not null,
+              model_config_summary_json text,
+              updated_at text not null
             );
             """;
     }

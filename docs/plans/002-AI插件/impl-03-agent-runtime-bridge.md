@@ -63,7 +63,12 @@
 新增测试，验证业务运行时可以返回多种输出：
 
 - 文本增量。
+- reasoning/thinking 增量。
+- tool call 参数流式增量。
 - 远程工具请求。
+- 工具结果记录。
+- script review 结果。
+- heartbeat 和 recovery 事件。
 - run 完成。
 - 错误。
 
@@ -105,6 +110,8 @@ public interface IAIAgentRuntime
 
 `AIAgentRunOutput` 应表达输出类型、文本、远程工具调用、错误和可扩展 metadata。它不应暴露 Provider 专用类型。
 
+输出类型至少覆盖：`MessageDelta`、`ThinkingDelta`、`ToolCallDelta`、`ToolCallRequested`、`ToolResultCompleted`、`ScriptReviewCompleted`、`Heartbeat`、`RecoveryStarted`、`RecoveryCompleted`、`RecoveryFailed`、`RunPaused`、`RunCompleted`、`Error`。
+
 ## 任务 2：实现 Runtime 输出到 SSE 的适配
 
 - [ ] **步骤 1：编写适配器测试**
@@ -112,7 +119,15 @@ public interface IAIAgentRuntime
 测试以下映射：
 
 - `MessageDelta` -> `message.delta`
+- `ThinkingDelta` -> `thinking.delta`
+- `ToolCallDelta` -> `tool_call.delta`
 - `ToolCallRequested` -> `tool_call.requested`
+- `ToolResultCompleted` -> `tool_result.completed`
+- `ScriptReviewCompleted` -> `script_review.completed`
+- `Heartbeat` -> `agent.heartbeat`
+- `RecoveryStarted` -> `agent.recovery.started`
+- `RecoveryCompleted` -> `agent.recovery.completed`
+- `RecoveryFailed` -> `agent.recovery.failed`
 - `RunPaused` -> `run.paused`
 - `RunCompleted` -> `run.completed`
 - `Error` -> `error`
@@ -123,7 +138,9 @@ public interface IAIAgentRuntime
 
 - 维护 run 内递增 `seq`。
 - 把 Runtime 输出转换为 `AgentStreamEvent`。
+- 对 `MessageDelta` 填充 `payload.text`，如内部输出包含 `delta` 也同时保留。
 - 对远程工具请求填充 `tool_call_id`、`name`、`arguments`。
+- 对工具结果填充 `tool_call_id`、`status`、`result` 或 `error`，事件名固定为 `tool_result.completed`。
 - 对错误输出填充错误消息和错误码。
 
 ## 任务 3：控制器接入业务运行时
@@ -134,8 +151,10 @@ public interface IAIAgentRuntime
 
 - `POST /agent/chat/stream` 输出 `run.started` 后继续输出 runtime 事件。
 - runtime 的 `ToolCallRequested` 会写入 state store。
+- runtime 的 `ToolCallDelta`、`ThinkingDelta` 会转换为兼容 SSE。
 - runtime 完成时 run 状态变为 completed。
 - runtime 抛异常时输出 `error`，并将 run 状态标记为 failed。
+- provider 异常不会把 API key 或 Provider 私有参数写入 stream event、checkpoint 或 debug trace。
 
 - [ ] **步骤 2：修改 `AIAgentController`**
 
@@ -165,6 +184,8 @@ public interface IAIAgentRuntime
 - resume 输出会继续转换为 SSE。
 - 工具结果写回 state store。
 - run 可以从 paused 转为 completed 或 failed。
+- 多 pending tool call 必须一次性提交完整匹配结果集合；缺失、额外、重复或串 run 时不会调用 runtime。
+- 终态 run 不允许 resume。
 
 - [ ] **步骤 2：实现 resume 流程**
 
@@ -174,14 +195,34 @@ public interface IAIAgentRuntime
 接收 remote tool results
   -> 初始化 state store
   -> 校验 thread/run/tool_call_id 完全匹配
-  -> 记录工具结果
+  -> 记录工具结果和 tool_result.completed 事件
   -> 构建 AIContext 和系统提示词
   -> 调用 IAIAgentRuntime.ResumeAsync
   -> 输出 runtime SSE events
   -> 更新 run 状态
 ```
 
-## 任务 5：MMB.Demo MAF + GLM5.1 真实 Provider 验证
+Runtime bridge 必须支持多轮 MAF tool calling。业务 runtime 收到工具参数验证失败时，应把失败作为工具结果或 observation 回填给 MAF，让模型有机会重试；Provider 异常统一转换为 `error` 事件并写入 run trace。
+
+## 任务 5：补齐 provider-neutral 配置、script review、skill 和 watchdog
+
+- [ ] **步骤 1：编写配置脱敏和 adapter 映射测试**
+
+验证 runtime request 只接收 provider-neutral 配置摘要，`api_key` 不进入 stream event、checkpoint、debug trace。`reasoning` 和 `thinking` 开关由业务 adapter 映射，不暴露 Provider 类型。
+
+- [ ] **步骤 2：实现 script review gate 接入点**
+
+`runWordScript` 等远程编辑工具发给前端前，允许业务注册 script review gate。审查通过时继续发出 `tool_call.requested`；审查拒绝时记录 `script_review.completed`，再输出 `tool_result.completed`，其中 `payload.status = "failed"`，让 Agent 重写脚本。
+
+- [ ] **步骤 3：实现 skill catalog 和按需加载 runtime 输出**
+
+`GET /agent/skills` 返回轻量 catalog。`loadWordAgentSkill` 由业务 runtime 作为 server-executed、model-visible 工具处理，只允许读取已注册 skill 根目录内的 `SKILL.md` 和被引用的相对文本文件。加载事件必须进入 stream/debug trace。
+
+- [ ] **步骤 4：实现 runtime watchdog 输出**
+
+支持 idle timeout、thinking-only timeout、heartbeat 和最多一次 recovery prompt/observation。输出映射为 `agent.heartbeat`、`agent.recovery.started`、`agent.recovery.completed`、`agent.recovery.failed`。恢复失败后 run 进入 failed。
+
+## 任务 6：MMB.Demo MAF + GLM5.1 真实 Provider 验证
 
 - [ ] **步骤 1：新增 MMB.Demo GLM5.1 示例配置**
 
@@ -294,21 +335,21 @@ curl -N -X POST http://127.0.0.1:5000/agent/chat/resume/stream -H "Content-Type:
 预期包含：
 
 ```text
-event: tool_call.resumed
+event: tool_result.completed
 event: message.delta
 event: run.completed
 ```
 
 阶段 3 只有在上述两个 MMB.Demo 运行时对话路径都可用时，才视为完成。单元测试通过但 MMB.Demo 不能通过 GLM5.1 完成真实普通流式对话，不算阶段 3 完成。
 
-## 任务 6：最终验证
+## 任务 7：最终验证
 
 - [ ] 运行 AI core 测试。
 - [ ] 运行 AI.Web 测试。
 - [ ] 运行 MMB.Demo 构建。
 - [ ] 准备本机 `MMB.Demo.WebAPI/appsettings.Development.json`，确认 GLM5.1 API Key 未写入仓库跟踪文件。
 - [ ] 运行 MMB.Demo.WebAPI，验证 GLM5.1 普通流式对话输出 `run.started`、`message.delta`、`run.completed`。
-- [ ] 运行 MMB.Demo.WebAPI，验证远程工具式对话输出 `tool_call.requested`、`run.paused`，并可通过 resume 输出 `tool_call.resumed`、`message.delta`、`run.completed`。
+- [ ] 运行 MMB.Demo.WebAPI，验证远程工具式对话输出 `tool_call.requested`、`run.paused`，并可通过 resume 输出 `tool_result.completed`、`message.delta`、`run.completed`。
 - [ ] 检查阶段 3 相关文件 CRLF。
 - [ ] 运行 GitNexus change detection。
 

@@ -233,6 +233,11 @@ Remote
 - `tool_call.delta`
 - `tool_call.requested`
 - `tool_result.completed`
+- `script_review.completed`
+- `agent.heartbeat`
+- `agent.recovery.started`
+- `agent.recovery.completed`
+- `agent.recovery.failed`
 - `run.paused`
 - `run.cancelled`
 - `run.completed`
@@ -252,6 +257,8 @@ Remote
 ```
 
 `seq` 在同一个 run 内递增，用于前端排序、调试追踪和断线后的事件核对。事件契约应保持向后兼容，新增字段优先放入 `payload`。
+
+`message.delta.payload.text` 是前端兼容字段，必须保留。若内部运行时或 Provider 使用 `delta` 字段，SSE 输出层应同时输出 `text` 和 `delta`，或统一转换为 `text`。
 
 远程工具请求事件示例：
 
@@ -274,6 +281,49 @@ Remote
 
 前端收到远程工具请求后，通过恢复接口提交工具结果。恢复接口必须校验回传的 `tool_call_id` 是否正好匹配当前 run 中待处理的工具调用，避免串 run、串会话或重复提交。
 
+远程工具结果使用 `tool_result.completed` 事件表达“服务端已经接收并记录一个工具结果”。工具执行结果本身通过 `payload.status` 区分：`completed`、`failed`、`rejected`。不要新增与当前客户端不兼容的 `tool_result.failed`、`tool_result.rejected` 或 `tool_call.resumed` 事件。
+
+常用 payload 结构应固定为：
+
+- `message.delta`：`text`，可选 `delta`。
+- `thinking.delta`：`text`。
+- `tool_call.delta`：`tool_call_id`、`name`、`arguments_delta`。
+- `tool_call.requested`：`tool_call_id`、`name`、`arguments`、可选 `approval_required`。
+- `tool_result.completed`：`tool_call_id`、`status`、可选 `result`、`error`。
+- `script_review.completed`：`tool_call_id`、`approved`、`reason`、可选 `risk_level`。
+- `error`：`code`、`message`、可选 `recoverable`。
+
+## HTTP API 契约
+
+`Materal.MergeBlock.AI.Web` 应保持面向前端的 Agent API 稳定，至少提供：
+
+- `POST /agent/chat/stream`
+- `POST /agent/chat/resume/stream`
+- `POST /agent/runs/{run_id}/cancel`
+- `GET /agent/sessions/{thread_id}`
+- `GET /agent/runs/{run_id}`
+- `GET /agent/debug-traces`
+- `GET /agent/debug-traces/{trace_id}`
+- `GET /agent/skills`
+
+接口字段应兼容当前前端模型：`AgentChatRequest`、`FrontendToolResultsRequest`、`CancelRunRequest`、`AgentStreamEvent`、`AgentSkillCatalogResponse`。如果 MMB 内部模型命名不同，应在 Web 边界做 DTO 适配，不要求前端改业务字段名。
+
+## Run 状态机和恢复规则
+
+Run 状态至少包括：`running`、`paused`、`completed`、`failed`、`cancelled`。
+
+远程工具恢复规则：
+
+- 一个 run 可以同时存在多个 pending tool call。
+- resume 请求必须携带 `thread_id`、`run_id` 和工具结果列表。
+- 工具结果集合必须与当前 run 中所有 pending tool call 精确一致。
+- 不允许缺失、额外、重复、已完成或跨 run 的工具结果。
+- 工具结果状态只允许 `completed`、`failed`、`rejected`。
+- 校验失败时不调用业务运行时，不改变 pending tool call，并返回可诊断错误。
+- 校验成功后先记录工具结果和 `tool_result.completed` 事件，再把结果交还给 Agent runtime 继续执行。
+
+取消、超时、Provider 异常和恢复失败都必须写入 run 状态和 debug trace。`cancelled`、`completed`、`failed` 是终态，终态 run 不允许再次 resume。
+
 ## 运行状态持久化
 
 Agent 运行过程不能只存在内存中。为支持暂停恢复、取消、调试和审计，模块应提供运行状态持久化抽象。
@@ -285,7 +335,10 @@ Agent 运行过程不能只存在内存中。为支持暂停恢复、取消、�
 - Message：用户、助手、工具消息。
 - StreamEvent：流式输出事件。
 - ToolCall：工具调用记录。
+- ToolResult：工具结果记录。
+- ScriptReviewResult：脚本审查结果。
 - Checkpoint：Agent 暂停点或恢复所需状态。
+- ModelConfigSnapshot：模型配置摘要，必须脱敏。
 
 持久化能力应支持：
 
@@ -294,6 +347,9 @@ Agent 运行过程不能只存在内存中。为支持暂停恢复、取消、�
 - 记录消息。
 - 记录流式事件。
 - 记录工具调用开始、请求、完成、失败、拒绝。
+- 记录脚本审查结果。
+- 记录 checkpoint 和 resume metadata。
+- 记录脱敏后的模型配置摘要。
 - 查询 session。
 - 查询 run。
 - 查询 debug trace。
@@ -427,6 +483,37 @@ public sealed class AIToolCallAuditContext
 - 远程工具结果必须校验 `run_id`、`thread_id`、`tool_call_id` 和待处理工具列表。
 - 远程工具默认不能跨会话恢复。
 - 修改型远程工具应支持更严格的权限或审批策略。
+- API key、访问令牌和 Provider 私有参数不能进入 stream event、checkpoint、debug trace 或工具参数日志。
+- debug trace、session、run 查询接口必须校验调用者是否有权限访问对应 thread/run。
+- Skill 文件加载只能读取已注册 skill 根目录内允许的文本文件，必须拒绝绝对路径、路径穿越和密钥/配置文件读取。
+
+## Provider 配置和 Runtime Bridge
+
+MMB 只保存 provider-neutral 的模型配置形态，例如 `provider`、`adapter`、`model`、`base_url`、`temperature`、`max_tokens`、`reasoning`、`thinking` 和脱敏后的配置摘要。`api_key` 只能由业务 host 的安全配置源提供，不进入 MMB 持久化和调试输出。
+
+`reasoning` 和 `thinking` 由业务注册的 adapter 映射到具体 MAF/Provider 参数。框架抽象不能暴露 OpenAI、Anthropic、Z.AI 等厂商类型。
+
+`IAIAgentRuntime` 不应只是普通文本流接口，必须能表达完整 Agent 运行循环：
+
+- MAF streaming text -> `message.delta`。
+- MAF reasoning/thinking -> `thinking.delta`。
+- MAF tool call streaming -> `tool_call.delta`。
+- MAF tool call 完成 -> `tool_call.requested`。
+- 远程工具请求 -> run 进入 `paused`。
+- resume 后把 tool result 回填给 MAF Agent 继续执行。
+- 多轮工具调用循环。
+- 工具参数验证失败后允许模型重试。
+- Provider 异常 -> `error` 事件并更新 run 状态。
+
+## 脚本审查和 Skill 渐进加载
+
+`runWordScript` 这类远程编辑工具在发给前端前，应允许业务模块接入可插拔 script review gate。审查不改变 Agent-facing 工具 schema；审查通过后继续发送前端执行，审查拒绝时记录 `script_review.completed` 并向 Agent 返回 `failed` 工具结果，促使 Agent 重写脚本。审查 prompt 必须通用，不能夹带具体业务场景。
+
+Skill 渐进加载通过 server-executed、model-visible 的工具实现。每轮只提供轻量 skill catalog，模型按需调用加载工具读取 `SKILL.md` 和该 skill 根目录内被引用的相对文本文件。skill 加载事件必须进入 stream/debug trace。skill 不能新增 Office 编辑工具，也不能绕过远程工具审批、脚本审查和前端 live verification。
+
+## Runtime Watchdog
+
+运行时应支持 idle timeout、thinking-only timeout、heartbeat 事件，以及最多一次 recovery prompt/observation。watchdog 事件映射为 `agent.heartbeat`、`agent.recovery.started`、`agent.recovery.completed`、`agent.recovery.failed`。恢复失败后 run 进入 `failed`，恢复成功后继续原 run，不新建 run。
 
 ## 一期范围
 
@@ -444,6 +531,11 @@ public sealed class AIToolCallAuditContext
 - 实现 Agent run 暂停、恢复、取消接口。
 - 实现运行状态持久化抽象和默认实现。
 - 实现 debug trace 查询接口。
+- 实现 MAF tool calling + resume runtime bridge。
+- 实现 provider-neutral 模型配置和脱敏摘要。
+- 实现可插拔 script review gate。
+- 实现 skill catalog 和按需加载接口。
+- 实现 runtime watchdog。
 - 实现提示词贡献器聚合。
 - 实现上下文贡献器聚合。
 - 实现工具调用审计接口与默认日志实现。

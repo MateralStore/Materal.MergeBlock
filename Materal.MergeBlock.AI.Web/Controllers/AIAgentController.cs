@@ -7,7 +7,7 @@ namespace Materal.MergeBlock.AI.Web.Controllers;
 /// AI Agent控制器
 /// </summary>
 [ApiController]
-[Route("agent/chat")]
+[Route("agent")]
 public class AIAgentController(
     IAIAgentStateStore stateStore,
     RemoteToolGateway remoteToolGateway,
@@ -21,7 +21,7 @@ public class AIAgentController(
     /// <summary>
     /// 流式对话
     /// </summary>
-    [HttpPost("stream")]
+    [HttpPost("chat/stream")]
     public async Task StreamAsync(AgentChatRequest request)
     {
         string threadId = string.IsNullOrWhiteSpace(request.ThreadId) ? Guid.NewGuid().ToString("N") : request.ThreadId;
@@ -29,6 +29,20 @@ public class AIAgentController(
         await stateStore.InitializeAsync();
         await stateStore.UpsertSessionAsync(threadId);
         await stateStore.StartRunAsync(runId, threadId);
+        await stateStore.RecordMessageAsync(new AgentMessageRecord
+        {
+            Id = $"message_{runId}_user",
+            ThreadId = threadId,
+            RunId = runId,
+            Role = "user",
+            Content = new Dictionary<string, object?> { ["text"] = request.Message }
+        });
+        await stateStore.RecordCheckpointAsync(runId, new Dictionary<string, object?>
+        {
+            ["thread_id"] = threadId,
+            ["run_id"] = runId,
+            ["phase"] = "started"
+        });
         CancellationToken cancellationToken = cancellationRegistry.Register(runId);
         int seq = 1;
         AgentStreamEvent streamEvent = new()
@@ -101,7 +115,7 @@ public class AIAgentController(
     /// <summary>
     /// 恢复远程工具调用
     /// </summary>
-    [HttpPost("resume/stream")]
+    [HttpPost("chat/resume/stream")]
     public async Task ResumeAsync(RemoteToolResultsRequest request)
     {
         await stateStore.InitializeAsync();
@@ -113,20 +127,13 @@ public class AIAgentController(
         AgentRunTrace trace = await stateStore.GetRunTraceAsync(request.RunId);
         await AuditToolResultsAsync(request, trace);
         IAIAgentRuntime? runtime = serviceProvider.GetService<IAIAgentRuntime>();
-        int seq = trace.Events.Count + 1;
-        AgentStreamEvent streamEvent = new()
+        int seq = trace.Events.Count;
+        foreach (RemoteToolResultItem toolResult in request.ToolResults)
         {
-            ThreadId = request.ThreadId,
-            RunId = request.RunId,
-            Seq = seq,
-            Event = "tool_call.resumed",
-            Payload = new Dictionary<string, object?>
-            {
-                ["tool_results_count"] = request.ToolResults.Count
-            }
-        };
-        await stateStore.RecordStreamEventAsync(streamEvent);
-        await WriteStreamEventAsync(streamEvent);
+            AgentStreamEvent streamEvent = streamAdapter.ToStreamEvent(request.ThreadId, request.RunId, ++seq, AIAgentRunOutput.ToolResultCompleted(toolResult.ToolCallId, toolResult.Status, toolResult.Result, toolResult.Error));
+            await stateStore.RecordStreamEventAsync(streamEvent);
+            await WriteStreamEventAsync(streamEvent);
+        }
         if (runtime is null)
         {
             AgentStreamEvent errorEvent = streamAdapter.ToStreamEvent(request.ThreadId, request.RunId, ++seq, AIAgentRunOutput.Error("未注册IAIAgentRuntime，无法恢复Agent运行时。", "runtime_not_registered"));
@@ -178,13 +185,61 @@ public class AIAgentController(
     /// <summary>
     /// 取消运行
     /// </summary>
-    [HttpPost("{runId}/cancel")]
+    [HttpPost("runs/{runId}/cancel")]
     public async Task<IActionResult> CancelAsync(string runId, CancelAgentRunRequest request)
     {
         await stateStore.InitializeAsync();
         cancellationRegistry.Cancel(runId);
         await stateStore.CompleteRunAsync(runId, AgentRunStatus.Cancelled, $"{request.Source}:{request.Reason}");
         return Ok();
+    }
+    /// <summary>
+    /// 获取会话
+    /// </summary>
+    [HttpGet("sessions/{threadId}")]
+    public async Task<AgentSessionTrace> GetSessionAsync(string threadId)
+    {
+        await stateStore.InitializeAsync();
+        return await stateStore.GetSessionTraceAsync(threadId);
+    }
+    /// <summary>
+    /// 获取运行
+    /// </summary>
+    [HttpGet("runs/{runId}")]
+    public async Task<AgentRunRecord> GetRunAsync(string runId)
+    {
+        await stateStore.InitializeAsync();
+        return await stateStore.GetRunAsync(runId);
+    }
+    /// <summary>
+    /// 获取调试追踪列表
+    /// </summary>
+    [HttpGet("debug-traces")]
+    public async Task<IReadOnlyList<AgentDebugTraceSummary>> GetDebugTracesAsync()
+    {
+        await stateStore.InitializeAsync();
+        return await stateStore.ListDebugTracesAsync();
+    }
+    /// <summary>
+    /// 获取调试追踪
+    /// </summary>
+    [HttpGet("debug-traces/{traceId}")]
+    public async Task<AgentRunTrace> GetDebugTraceAsync(string traceId)
+    {
+        await stateStore.InitializeAsync();
+        return await stateStore.GetRunTraceAsync(traceId);
+    }
+    /// <summary>
+    /// 获取Skill目录
+    /// </summary>
+    [HttpGet("skills")]
+    public AgentSkillCatalogResponse GetSkills()
+    {
+        AgentSkillCatalogItem[] skills = [.. serviceProvider.GetServices<IAIAgentSkillCatalogProvider>().SelectMany(m => m.GetSkills())];
+        return new AgentSkillCatalogResponse
+        {
+            Skills = skills
+        };
     }
     private async Task WriteStreamEventAsync(AgentStreamEvent streamEvent)
     {
@@ -202,6 +257,40 @@ public class AIAgentController(
     private async Task PersistRuntimeOutputAsync(AgentStreamEvent streamEvent, AIAgentRunOutput output)
     {
         await stateStore.RecordStreamEventAsync(streamEvent);
+        if (output.Type is AIAgentRunOutputType.MessageDelta && !string.IsNullOrEmpty(output.Text))
+        {
+            await stateStore.RecordMessageAsync(new AgentMessageRecord
+            {
+                Id = $"message_{streamEvent.RunId}_{streamEvent.Seq}",
+                ThreadId = streamEvent.ThreadId,
+                RunId = streamEvent.RunId,
+                Role = "assistant",
+                Content = new Dictionary<string, object?> { ["text"] = output.Text }
+            });
+        }
+        if (output.Type is AIAgentRunOutputType.ScriptReviewCompleted)
+        {
+            await stateStore.RecordScriptReviewAsync(new ScriptReviewResult
+            {
+                Id = $"script_review_{streamEvent.RunId}_{streamEvent.Seq}",
+                ThreadId = streamEvent.ThreadId,
+                RunId = streamEvent.RunId,
+                ToolCallId = output.ToolCallId ?? string.Empty,
+                Approved = output.Approved ?? false,
+                Reason = output.Reason,
+                RiskLevel = output.RiskLevel
+            });
+        }
+        if (output.Type is AIAgentRunOutputType.RunPaused)
+        {
+            await stateStore.RecordCheckpointAsync(streamEvent.RunId, new Dictionary<string, object?>
+            {
+                ["thread_id"] = streamEvent.ThreadId,
+                ["run_id"] = streamEvent.RunId,
+                ["phase"] = "paused",
+                ["seq"] = streamEvent.Seq
+            });
+        }
         if (output.Type is not AIAgentRunOutputType.ToolCallRequested) return;
         await stateStore.RecordToolCallAsync(new RemoteToolPendingCall
         {

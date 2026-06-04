@@ -17,4 +17,16 @@ public class AgentRunTrace
     /// 工具调用
     /// </summary>
     public IReadOnlyList<RemoteToolPendingCall> ToolCalls { get; init; } = [];
+    /// <summary>
+    /// 消息记录
+    /// </summary>
+    public IReadOnlyList<AgentMessageRecord> Messages { get; init; } = [];
+    /// <summary>
+    /// 脚本审查结果
+    /// </summary>
+    public IReadOnlyList<ScriptReviewResult> ScriptReviews { get; init; } = [];
+    /// <summary>
+    /// 检查点
+    /// </summary>
+    public AgentCheckpointRecord? Checkpoint { get; init; }
 }

@@ -8,7 +8,6 @@ appsettings.Development.json
 **/private.key
 **/MateralCertificate.cer
 **/data/ai-agent.sqlite3
-**/wwwroot/ai-chat-test.html
 # */[Dd]ocs*
 # User-specific files
 *.suo

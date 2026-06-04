@@ -76,4 +76,57 @@ public class SqliteAIAgentStateStoreTest
         Assert.IsNotNull(trace.ToolCalls[0].Result);
         Assert.AreEqual("True", trace.ToolCalls[0].Result!["ok"]?.ToString());
     }
+
+    [TestMethod]
+    public async Task GetRunTraceAsync_ShouldReturnMessagesScriptReviewAndCheckpoint()
+    {
+        string databasePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.sqlite3");
+        SqliteAIAgentStateStore store = new(databasePath);
+        await store.InitializeAsync();
+        await store.UpsertSessionAsync("thread_001");
+        await store.StartRunAsync("run_001", "thread_001");
+
+        await store.RecordMessageAsync(new AgentMessageRecord
+        {
+            Id = "message_user_001",
+            ThreadId = "thread_001",
+            RunId = "run_001",
+            Role = "user",
+            Content = new Dictionary<string, object?> { ["text"] = "hello" }
+        });
+        await store.RecordMessageAsync(new AgentMessageRecord
+        {
+            Id = "message_assistant_001",
+            ThreadId = "thread_001",
+            RunId = "run_001",
+            Role = "assistant",
+            Content = new Dictionary<string, object?> { ["text"] = "hi" }
+        });
+        await store.RecordScriptReviewAsync(new ScriptReviewResult
+        {
+            Id = "review_001",
+            ThreadId = "thread_001",
+            RunId = "run_001",
+            ToolCallId = "call_001",
+            Approved = false,
+            Reason = "脚本需要重写",
+            RiskLevel = "medium"
+        });
+        await store.RecordCheckpointAsync(
+            "run_001",
+            new Dictionary<string, object?> { ["resume_token"] = "token_001" },
+            new Dictionary<string, object?> { ["model"] = "glm-5.1", ["api_key"] = "***" });
+
+        AgentRunTrace trace = await store.GetRunTraceAsync("run_001");
+
+        Assert.AreEqual(2, trace.Messages.Count);
+        Assert.AreEqual("user", trace.Messages[0].Role);
+        Assert.AreEqual("hello", trace.Messages[0].Content["text"]?.ToString());
+        Assert.AreEqual(1, trace.ScriptReviews.Count);
+        Assert.AreEqual("call_001", trace.ScriptReviews[0].ToolCallId);
+        Assert.IsFalse(trace.ScriptReviews[0].Approved);
+        Assert.IsNotNull(trace.Checkpoint);
+        Assert.AreEqual("token_001", trace.Checkpoint!.Metadata["resume_token"]?.ToString());
+        Assert.AreEqual("***", trace.Checkpoint.ModelConfigSummary!["api_key"]?.ToString());
+    }
 }

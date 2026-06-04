@@ -26,6 +26,34 @@ public class AIAgentRunOutput
     /// </summary>
     public IReadOnlyDictionary<string, object?>? ToolArguments { get; init; }
     /// <summary>
+    /// 工具参数增量
+    /// </summary>
+    public string? ToolArgumentsDelta { get; init; }
+    /// <summary>
+    /// 状态
+    /// </summary>
+    public string? Status { get; init; }
+    /// <summary>
+    /// 工具结果
+    /// </summary>
+    public IReadOnlyDictionary<string, object?>? Result { get; init; }
+    /// <summary>
+    /// 工具错误
+    /// </summary>
+    public IReadOnlyDictionary<string, object?>? ToolError { get; init; }
+    /// <summary>
+    /// 是否通过审查
+    /// </summary>
+    public bool? Approved { get; init; }
+    /// <summary>
+    /// 原因
+    /// </summary>
+    public string? Reason { get; init; }
+    /// <summary>
+    /// 风险等级
+    /// </summary>
+    public string? RiskLevel { get; init; }
+    /// <summary>
     /// 错误消息
     /// </summary>
     public string? ErrorMessage { get; init; }
@@ -46,6 +74,24 @@ public class AIAgentRunOutput
         Text = text
     };
     /// <summary>
+    /// 创建思考增量
+    /// </summary>
+    public static AIAgentRunOutput ThinkingDelta(string text) => new()
+    {
+        Type = AIAgentRunOutputType.ThinkingDelta,
+        Text = text
+    };
+    /// <summary>
+    /// 创建工具调用增量
+    /// </summary>
+    public static AIAgentRunOutput ToolCallDelta(string toolCallId, string toolName, string argumentsDelta) => new()
+    {
+        Type = AIAgentRunOutputType.ToolCallDelta,
+        ToolCallId = toolCallId,
+        ToolName = toolName,
+        ToolArgumentsDelta = argumentsDelta
+    };
+    /// <summary>
     /// 创建工具调用请求
     /// </summary>
     public static AIAgentRunOutput ToolCallRequested(string toolCallId, string toolName, IReadOnlyDictionary<string, object?>? arguments = null) => new()
@@ -54,6 +100,57 @@ public class AIAgentRunOutput
         ToolCallId = toolCallId,
         ToolName = toolName,
         ToolArguments = arguments
+    };
+    /// <summary>
+    /// 创建工具结果完成
+    /// </summary>
+    public static AIAgentRunOutput ToolResultCompleted(string toolCallId, string status, IReadOnlyDictionary<string, object?>? result = null, IReadOnlyDictionary<string, object?>? error = null) => new()
+    {
+        Type = AIAgentRunOutputType.ToolResultCompleted,
+        ToolCallId = toolCallId,
+        Status = status,
+        Result = result,
+        ToolError = error
+    };
+    /// <summary>
+    /// 创建脚本审查完成
+    /// </summary>
+    public static AIAgentRunOutput ScriptReviewCompleted(string toolCallId, bool approved, string reason, string? riskLevel = null) => new()
+    {
+        Type = AIAgentRunOutputType.ScriptReviewCompleted,
+        ToolCallId = toolCallId,
+        Approved = approved,
+        Reason = reason,
+        RiskLevel = riskLevel
+    };
+    /// <summary>
+    /// 创建心跳
+    /// </summary>
+    public static AIAgentRunOutput Heartbeat() => new()
+    {
+        Type = AIAgentRunOutputType.Heartbeat
+    };
+    /// <summary>
+    /// 创建恢复开始
+    /// </summary>
+    public static AIAgentRunOutput RecoveryStarted() => new()
+    {
+        Type = AIAgentRunOutputType.RecoveryStarted
+    };
+    /// <summary>
+    /// 创建恢复完成
+    /// </summary>
+    public static AIAgentRunOutput RecoveryCompleted() => new()
+    {
+        Type = AIAgentRunOutputType.RecoveryCompleted
+    };
+    /// <summary>
+    /// 创建恢复失败
+    /// </summary>
+    public static AIAgentRunOutput RecoveryFailed(string message) => new()
+    {
+        Type = AIAgentRunOutputType.RecoveryFailed,
+        ErrorMessage = message
     };
     /// <summary>
     /// 创建运行暂停

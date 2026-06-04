@@ -109,6 +109,13 @@ dotnet test .\Materal.MergeBlock\Materal.MergeBlock.AI.Test\Materal.MergeBlock.A
 
 创建 `SseEventWriterTest.cs`，验证 `SseEventWriter.Format` 输出 `event: tool_call.requested`、包含 `"schema_version":"agent-stream-v1"`，并以空行结束。
 
+同时增加 contract tests 固定：
+
+- `message.delta.payload.text` 必须存在；如果内部字段使用 `delta`，输出时也要兼容 `text`。
+- 基础事件名覆盖 `run.started`、`message.delta`、`thinking.delta`、`tool_call.delta`、`tool_call.requested`、`tool_result.completed`、`script_review.completed`、`agent.heartbeat`、`agent.recovery.started`、`agent.recovery.completed`、`agent.recovery.failed`、`error`、`run.paused`、`run.completed`、`run.cancelled`。
+- 同一个 run 内 `seq` 必须递增。
+- `tool_result.completed` 通过 `payload.status` 表达 `completed`、`failed`、`rejected`，不要输出 `tool_call.resumed`。
+
 - [ ] **步骤 2：实现流式模型**
 
 创建 `AgentStreamEvent.cs`：
@@ -154,6 +161,16 @@ dotnet test .\Materal.MergeBlock\Materal.MergeBlock.AI.Web.Test\Materal.MergeBlo
 
 创建 `SqliteAIAgentStateStoreTest.cs`，验证 store 可以持久化 session、run、stream event 和远程工具调用，并能通过 `GetRunTraceAsync` 读取 run、事件和工具调用记录。
 
+测试还需要覆盖：
+
+- user/assistant/tool message。
+- tool result。
+- script review result。
+- checkpoint / resume metadata。
+- 脱敏后的 model config 摘要。
+- run status 和 error message。
+- debug trace 一次性返回完整执行链路。
+
 - [ ] **步骤 2：实现持久化接口**
 
 创建 `IAIAgentStateStore.cs`：
@@ -172,11 +189,14 @@ public interface IAIAgentStateStore
     Task CompleteRunAsync(string runId, string status, string? errorMessage = null);
     Task RecordStreamEventAsync(AgentStreamEvent streamEvent);
     Task RecordToolCallAsync(RemoteToolPendingCall toolCall);
+    Task RecordToolResultAsync(RemoteToolResultItem toolResult);
+    Task RecordScriptReviewAsync(ScriptReviewResult scriptReviewResult);
+    Task RecordCheckpointAsync(string runId, IReadOnlyDictionary<string, object?> metadata);
     Task<AgentRunTrace> GetRunTraceAsync(string runId);
 }
 ```
 
-同时创建 `AgentRunTrace` 和 `RemoteToolPendingCall` 模型，包含 run、events、tool calls、`ToolCallId`、`ThreadId`、`RunId`、`ToolName`、`Status`、`Arguments` 等属性。
+同时创建 `AgentRunTrace`、`RemoteToolPendingCall`、`ScriptReviewResult` 和 checkpoint/model config 摘要模型，包含 run、events、messages、tool calls、tool results、script review、`ToolCallId`、`ThreadId`、`RunId`、`ToolName`、`Status`、`Arguments`、脱敏配置摘要等属性。
 
 - [ ] **步骤 3：实现 SQLite 表结构**
 
@@ -217,6 +237,30 @@ create table if not exists ai_agent_tool_calls (
   created_at text not null,
   completed_at text
 );
+create table if not exists ai_agent_messages (
+  id text primary key,
+  thread_id text not null,
+  run_id text not null,
+  role text not null,
+  content_json text not null,
+  created_at text not null
+);
+create table if not exists ai_agent_script_reviews (
+  id text primary key,
+  thread_id text not null,
+  run_id text not null,
+  tool_call_id text not null,
+  approved integer not null,
+  reason text,
+  risk_level text,
+  created_at text not null
+);
+create table if not exists ai_agent_checkpoints (
+  run_id text primary key,
+  metadata_json text not null,
+  model_config_summary_json text,
+  updated_at text not null
+);
 ```
 
 时间戳使用 `DateTimeOffset.UtcNow.ToString("O")`，payload 使用 `System.Text.Json` 序列化。
@@ -236,6 +280,8 @@ dotnet test .\Materal.MergeBlock\Materal.MergeBlock.AI.Web.Test\Materal.MergeBlo
 - [ ] **步骤 1：编写 gateway 恢复校验测试**
 
 创建 `RemoteToolGatewayTest.cs`，验证提交的 `ToolCallId` 与当前 run 中待处理工具调用不完全匹配时，`ValidateResumeAsync` 抛出 `InvalidOperationException`。
+
+测试必须覆盖缺失、额外、重复、已完成、串 run、串 thread 的工具结果。一个 run 存在多个 pending tool call 时，resume 请求必须一次性提交与 pending 集合完全一致的结果集合。
 
 - [ ] **步骤 2：实现请求模型**
 
@@ -268,7 +314,9 @@ public class RemoteToolResultItem
 - run 必须存在。
 - `thread_id` 必须与 run 匹配。
 - 请求中的工具结果 ID 必须与当前 run 中状态为 `requested` 的工具调用 ID 完全一致。
-- 不允许缺失、额外或串 run 的工具结果。
+- 不允许缺失、额外、重复、已完成或串 run 的工具结果。
+- `Status` 只允许 `completed`、`failed`、`rejected`。
+- 校验失败时不写入工具结果，不调用 runtime，不改变 pending 状态。
 
 不匹配时抛出清晰的 `InvalidOperationException`。
 
@@ -319,6 +367,12 @@ public class CancelAgentRunRequest
 
 - `POST /agent/chat/stream`：设置 `text/event-stream`，创建或使用传入 run，记录 session/run，写出 `run.started` 事件。
 - `POST /agent/chat/resume/stream`：先调用 `RemoteToolGateway.ValidateResumeAsync`，校验通过后以 SSE 写出恢复事件。
+- `POST /agent/runs/{run_id}/cancel`：校验 thread/run 后取消 run，输出并记录 `run.cancelled`。
+- `GET /agent/sessions/{thread_id}`：返回 session 和关联 run 摘要。
+- `GET /agent/runs/{run_id}`：返回 run 状态。
+- `GET /agent/debug-traces`：返回 debug trace 列表。
+- `GET /agent/debug-traces/{trace_id}`：返回完整执行链路。
+- `GET /agent/skills`：返回轻量 skill catalog。
 
 该骨架故意保持最小化。等 Remote Tool Gateway 测试证明暂停/恢复校验后，再补充 MAF run 编排。
 

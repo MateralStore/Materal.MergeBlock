@@ -35,6 +35,9 @@
 - 使用 `AIToolDescriptor.ExecutionMode` 分流 `Local` 和 `Remote` 工具。
 - `IAIPromptContributor` 只能读取 `IReadOnlyAIContext`，不能修改 AI 上下文。
 - `IAIToolCallAuditor` 是审计扩展点，不是业务工具声明接口。
+- SSE 事件契约保持 `agent-stream-v1`，`message.delta.payload.text` 必须兼容保留。
+- 远程工具结果统一输出 `tool_result.completed`，通过 `payload.status` 区分 `completed`、`failed`、`rejected`；不要引入 `tool_call.resumed`。
+- API key 和 Provider 私有参数不能进入 stream event、checkpoint、debug trace 或提交文件。
 - 所有新增或修改文件都保持 CRLF 行尾。
 - 不要自动提交。如果用户要求提交，提交信息必须使用中文。
 
@@ -90,13 +93,19 @@ dotnet test .\Materal.slnx
 - `Materal.MergeBlock.AI.Web` 暴露 streaming、resume、cancel、session、run 和 debug trace 端点。
 - 一个假的远程工具能产生 `tool_call.requested`，暂停 run，接受匹配的工具结果，并恢复。
 - 不匹配的 `run_id`、`thread_id` 或 `tool_call_id` 会被拒绝。
+- 多 pending tool call 的 resume 必须要求结果集合与当前 run 的 pending 集合完全一致。
+- SSE contract tests 覆盖事件名、payload 关键字段、`seq` 递增、cancel 行为和 debug trace 输出结构。
+- debug trace 能看到用户消息、模型输出、工具请求、工具结果、脚本审查、最终状态，并确认敏感配置已脱敏。
 - `MMB.Demo.WebAPI` 可以加载 AI Web 模块，并在真实 MergeBlock 运行时宿主中暴露 AI 路由。
 
 阶段 3 完成条件：
 
 - `Materal.MergeBlock.AI.Web` 通过抽象调用业务注册的 Agent 运行时。
-- Runtime 输出可以转换为 `message.delta`、`tool_call.requested`、`run.paused`、`run.completed` 和 `error` 等 SSE 事件。
+- Runtime 输出可以转换为 `message.delta`、`thinking.delta`、`tool_call.delta`、`tool_call.requested`、`tool_result.completed`、`run.paused`、`run.completed` 和 `error` 等 SSE 事件。
 - 远程工具请求可以被持久化为 pending tool call，并通过 resume 接口把工具结果交回业务运行时。
+- Runtime bridge 支持多轮 MAF tool calling，工具参数验证失败时允许模型重试，Provider 异常会输出 `error` 并写入 trace。
+- 支持 provider-neutral 模型配置映射，`reasoning`/`thinking` 由业务 adapter 转换为具体 MAF/Provider 参数。
+- 支持 script review、skill catalog/按需加载和 runtime watchdog 的最小闭环。
 - MMB.AI 不引用任何 Provider 包，也不包含具体业务模块逻辑。
 
 ## 用户确认后的提交检查点
