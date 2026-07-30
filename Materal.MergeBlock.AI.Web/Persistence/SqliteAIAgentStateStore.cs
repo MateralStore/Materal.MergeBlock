@@ -176,6 +176,10 @@ public class SqliteAIAgentStateStore(string databasePath) : IAIAgentStateStore
     /// <inheritdoc />
     public async Task RecordCheckpointAsync(string runId, IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?>? modelConfigSummary = null)
     {
+        IReadOnlyDictionary<string, object?> redactedMetadata = AgentTraceRedactor.Redact(metadata);
+        IReadOnlyDictionary<string, object?>? redactedModelConfigSummary = modelConfigSummary is null
+            ? null
+            : AgentTraceRedactor.Redact(modelConfigSummary);
         await ExecuteNonQueryAsync("""
             insert into ai_agent_checkpoints(run_id, metadata_json, model_config_summary_json, updated_at)
             values($run_id, $metadata_json, $model_config_summary_json, $updated_at)
@@ -187,8 +191,8 @@ public class SqliteAIAgentStateStore(string databasePath) : IAIAgentStateStore
             command =>
             {
                 command.Parameters.AddWithValue("$run_id", runId);
-                command.Parameters.AddWithValue("$metadata_json", Serialize(metadata) ?? "{}");
-                command.Parameters.AddWithValue("$model_config_summary_json", (object?)Serialize(modelConfigSummary) ?? DBNull.Value);
+                command.Parameters.AddWithValue("$metadata_json", Serialize(redactedMetadata) ?? "{}");
+                command.Parameters.AddWithValue("$model_config_summary_json", (object?)Serialize(redactedModelConfigSummary) ?? DBNull.Value);
                 command.Parameters.AddWithValue("$updated_at", GetNow());
             });
     }
@@ -262,6 +266,7 @@ public class SqliteAIAgentStateStore(string databasePath) : IAIAgentStateStore
         List<AgentMessageRecord> messages = await GetMessagesAsync(connection, runId);
         List<ScriptReviewResult> scriptReviews = await GetScriptReviewsAsync(connection, runId);
         AgentCheckpointRecord? checkpoint = await GetCheckpointAsync(connection, runId);
+        List<AgentTimelineItem> timeline = BuildTimeline(messages, events, toolCalls, scriptReviews);
         return new AgentRunTrace
         {
             Run = run,
@@ -269,8 +274,52 @@ public class SqliteAIAgentStateStore(string databasePath) : IAIAgentStateStore
             ToolCalls = toolCalls,
             Messages = messages,
             ScriptReviews = scriptReviews,
+            Timeline = timeline,
             Checkpoint = checkpoint
         };
+    }
+    private static List<AgentTimelineItem> BuildTimeline(
+        IReadOnlyList<AgentMessageRecord> messages,
+        IReadOnlyList<AgentStreamEvent> events,
+        IReadOnlyList<RemoteToolPendingCall> toolCalls,
+        IReadOnlyList<ScriptReviewResult> scriptReviews)
+    {
+        List<AgentTimelineItem> timeline = [];
+        timeline.AddRange(messages.Select(m => new AgentTimelineItem
+        {
+            Kind = "message",
+            RunId = m.RunId,
+            Role = m.Role,
+            Payload = AgentTraceRedactor.Redact(m.Content)
+        }));
+        timeline.AddRange(events.Select(m => new AgentTimelineItem
+        {
+            Kind = "event",
+            RunId = m.RunId,
+            Seq = m.Seq,
+            Event = m.Event,
+            Payload = AgentTraceRedactor.Redact(m.Payload)
+        }));
+        timeline.AddRange(toolCalls.Select(m => new AgentTimelineItem
+        {
+            Kind = "tool_call",
+            RunId = m.RunId,
+            Event = m.ToolName,
+            Payload = AgentTraceRedactor.Redact(m.Arguments ?? new Dictionary<string, object?>())
+        }));
+        timeline.AddRange(scriptReviews.Select(m => new AgentTimelineItem
+        {
+            Kind = "script_review",
+            RunId = m.RunId,
+            Event = m.ToolCallId,
+            Payload = AgentTraceRedactor.Redact(new Dictionary<string, object?>
+            {
+                ["approved"] = m.Approved,
+                ["reason"] = m.Reason,
+                ["risk_level"] = m.RiskLevel
+            })
+        }));
+        return timeline;
     }
     private async Task<AgentRunRecord> GetRunAsync(SqliteConnection connection, string runId)
     {

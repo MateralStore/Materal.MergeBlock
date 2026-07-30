@@ -37,6 +37,7 @@ public class AIAgentStreamAdapter
             AIAgentRunOutputType.RecoveryCompleted => "agent.recovery.completed",
             AIAgentRunOutputType.RecoveryFailed => "agent.recovery.failed",
             AIAgentRunOutputType.RunPaused => "run.paused",
+            AIAgentRunOutputType.RunCancelled => "run.cancelled",
             AIAgentRunOutputType.RunCompleted => "run.completed",
             AIAgentRunOutputType.Error => "error",
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, "未知AI Agent输出类型。")

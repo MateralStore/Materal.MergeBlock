@@ -16,7 +16,7 @@ public class RemoteToolGatewayTest
             ToolCallId = "call_001",
             ThreadId = "thread_001",
             RunId = "run_001",
-            ToolName = "runWordScript",
+            ToolName = "runClientAction",
             Status = AIToolCallStatus.Requested
         });
         RemoteToolGateway gateway = new(store);
@@ -53,7 +53,7 @@ public class RemoteToolGatewayTest
             ToolCallId = "call_001",
             ThreadId = "thread_001",
             RunId = "run_001",
-            ToolName = "runWordScript",
+            ToolName = "runClientAction",
             Status = AIToolCallStatus.Requested
         });
         RemoteToolGateway gateway = new(store);
@@ -87,7 +87,7 @@ public class RemoteToolGatewayTest
             ToolCallId = "call_001",
             ThreadId = "thread_001",
             RunId = "run_001",
-            ToolName = "runWordScript",
+            ToolName = "runClientAction",
             Status = AIToolCallStatus.Requested
         });
         RemoteToolGateway gateway = new(store);
@@ -120,7 +120,7 @@ public class RemoteToolGatewayTest
             ToolCallId = "call_001",
             ThreadId = "thread_001",
             RunId = "run_001",
-            ToolName = "runWordScript",
+            ToolName = "runClientAction",
             Status = AIToolCallStatus.Requested
         });
         await store.CompleteRunAsync("run_001", AgentRunStatus.Completed);

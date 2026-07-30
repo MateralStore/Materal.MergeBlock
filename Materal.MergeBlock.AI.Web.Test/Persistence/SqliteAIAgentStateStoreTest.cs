@@ -28,7 +28,7 @@ public class SqliteAIAgentStateStoreTest
             ToolCallId = "call_001",
             ThreadId = "thread_001",
             RunId = "run_001",
-            ToolName = "runWordScript",
+            ToolName = "runClientAction",
             Status = "requested",
             Arguments = new Dictionary<string, object?> { ["script"] = "return 1;" }
         });
@@ -127,6 +127,49 @@ public class SqliteAIAgentStateStoreTest
         Assert.IsFalse(trace.ScriptReviews[0].Approved);
         Assert.IsNotNull(trace.Checkpoint);
         Assert.AreEqual("token_001", trace.Checkpoint!.Metadata["resume_token"]?.ToString());
-        Assert.AreEqual("***", trace.Checkpoint.ModelConfigSummary!["api_key"]?.ToString());
+        Assert.AreEqual("glm-5.1", trace.Checkpoint.ModelConfigSummary!["model"]?.ToString());
+        Assert.IsFalse(trace.Checkpoint.ModelConfigSummary.ContainsKey("api_key"));
+    }
+
+    [TestMethod]
+    public async Task GetRunTraceAsync_ShouldReturnTimelineAndRedactedModelConfig()
+    {
+        string databasePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.sqlite3");
+        SqliteAIAgentStateStore store = new(databasePath);
+        await store.InitializeAsync();
+        await store.UpsertSessionAsync("thread_001");
+        await store.StartRunAsync("run_001", "thread_001");
+        await store.RecordCheckpointAsync(
+            "run_001",
+            new Dictionary<string, object?> { ["phase"] = "started" },
+            new Dictionary<string, object?>
+            {
+                ["provider"] = "openai",
+                ["model"] = "gpt-test",
+                ["api_key"] = "secret"
+            });
+        await store.RecordMessageAsync(new AgentMessageRecord
+        {
+            Id = "message_001",
+            ThreadId = "thread_001",
+            RunId = "run_001",
+            Role = "user",
+            Content = new Dictionary<string, object?> { ["text"] = "hello" }
+        });
+        await store.RecordStreamEventAsync(new AgentStreamEvent
+        {
+            ThreadId = "thread_001",
+            RunId = "run_001",
+            Seq = 1,
+            Event = "run.started",
+            Payload = new Dictionary<string, object?>()
+        });
+
+        AgentRunTrace trace = await store.GetRunTraceAsync("run_001");
+
+        Assert.IsNotNull(trace.Checkpoint);
+        Assert.IsNotNull(trace.Checkpoint.ModelConfigSummary);
+        Assert.IsFalse(trace.Checkpoint.ModelConfigSummary.ContainsKey("api_key"));
+        Assert.IsTrue(trace.Timeline.Count >= 2);
     }
 }

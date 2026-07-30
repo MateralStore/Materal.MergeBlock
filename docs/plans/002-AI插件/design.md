@@ -1,4 +1,4 @@
-# Materal.MergeBlock.AI 设计草案
+﻿# Materal.MergeBlock.AI 设计草案
 
 ## 背景
 
@@ -507,9 +507,9 @@ MMB 只保存 provider-neutral 的模型配置形态，例如 `provider`、`adap
 
 ## 脚本审查和 Skill 渐进加载
 
-`runWordScript` 这类远程编辑工具在发给前端前，应允许业务模块接入可插拔 script review gate。审查不改变 Agent-facing 工具 schema；审查通过后继续发送前端执行，审查拒绝时记录 `script_review.completed` 并向 Agent 返回 `failed` 工具结果，促使 Agent 重写脚本。审查 prompt 必须通用，不能夹带具体业务场景。
+`executeRemoteAction` 这类远程执行工具在发给前端前，应允许业务模块接入可插拔 script review gate。审查不改变 Agent-facing 工具 schema；审查通过后继续发送前端执行，审查拒绝时记录 `script_review.completed` 并向 Agent 返回 `failed` 工具结果，促使 Agent 重写请求。审查 prompt 必须通用，不能夹带具体业务场景。
 
-Skill 渐进加载通过 server-executed、model-visible 的工具实现。每轮只提供轻量 skill catalog，模型按需调用加载工具读取 `SKILL.md` 和该 skill 根目录内被引用的相对文本文件。skill 加载事件必须进入 stream/debug trace。skill 不能新增 Office 编辑工具，也不能绕过远程工具审批、脚本审查和前端 live verification。
+Skill 渐进加载通过 server-executed、model-visible 的工具实现。每轮只提供轻量 skill catalog，模型按需调用加载工具读取 `SKILL.md` 和该 skill 根目录内被引用的相对文本文件。skill 加载事件必须进入 stream/debug trace。skill 不能新增业务专用远程工具，也不能绕过远程工具审批、脚本审查和前端 live verification。
 
 ## Runtime Watchdog
 

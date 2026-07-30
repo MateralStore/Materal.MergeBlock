@@ -12,8 +12,7 @@ public class AIAgentController(
     IAIAgentStateStore stateStore,
     RemoteToolGateway remoteToolGateway,
     AIAgentCancellationRegistry cancellationRegistry,
-    AIContextBuilder contextBuilder,
-    AIPromptBuilder promptBuilder,
+    AIAgentRuntimeRequestFactory runtimeRequestFactory,
     AIAgentStreamAdapter streamAdapter,
     IEnumerable<IAIToolCallAuditor> toolCallAuditors,
     IServiceProvider serviceProvider) : ControllerBase
@@ -70,18 +69,9 @@ public class AIAgentController(
         }
         try
         {
-            IReadOnlyAIContext aiContext = await contextBuilder.BuildAsync();
-            IReadOnlyList<string> systemMessages = await promptBuilder.BuildSystemMessagesAsync(aiContext);
-            AIAgentRunRequest runRequest = new()
-            {
-                ThreadId = threadId,
-                RunId = runId,
-                Message = request.Message,
-                AIContext = aiContext,
-                SystemMessages = systemMessages,
-                CancellationToken = cancellationToken
-            };
-            await foreach (AIAgentRunOutput output in runtime.RunAsync(runRequest).WithCancellation(cancellationToken))
+            AIAgentRunRequest runRequest = await runtimeRequestFactory.CreateRunRequestAsync(request, threadId, runId, cancellationToken);
+            IAsyncEnumerable<AIAgentRunOutput> outputs = WatchRuntime(runtime.RunAsync(runRequest), cancellationToken);
+            await foreach (AIAgentRunOutput output in outputs.WithCancellation(cancellationToken))
             {
                 AgentStreamEvent runtimeEvent = streamAdapter.ToStreamEvent(threadId, runId, ++seq, output);
                 await PersistRuntimeOutputAsync(runtimeEvent, output);
@@ -144,18 +134,14 @@ public class AIAgentController(
         }
         try
         {
-            IReadOnlyAIContext aiContext = await contextBuilder.BuildAsync();
-            IReadOnlyList<string> systemMessages = await promptBuilder.BuildSystemMessagesAsync(aiContext);
-            AIAgentResumeRequest resumeRequest = new()
+            AgentChatRequest baseRequest = new()
             {
                 ThreadId = request.ThreadId,
                 RunId = request.RunId,
-                ToolResults = request.ToolResults.Select(ToRuntimeToolResult).ToArray(),
-                AIContext = aiContext,
-                SystemMessages = systemMessages,
-                CancellationToken = HttpContext.RequestAborted
             };
-            await foreach (AIAgentRunOutput output in runtime.ResumeAsync(resumeRequest).WithCancellation(HttpContext.RequestAborted))
+            AIAgentResumeRequest resumeRequest = await runtimeRequestFactory.CreateResumeRequestAsync(baseRequest, request, HttpContext.RequestAborted);
+            IAsyncEnumerable<AIAgentRunOutput> outputs = WatchRuntime(runtime.ResumeAsync(resumeRequest), HttpContext.RequestAborted);
+            await foreach (AIAgentRunOutput output in outputs.WithCancellation(HttpContext.RequestAborted))
             {
                 AgentStreamEvent runtimeEvent = streamAdapter.ToStreamEvent(request.ThreadId, request.RunId, ++seq, output);
                 await PersistRuntimeOutputAsync(runtimeEvent, output);
@@ -190,6 +176,7 @@ public class AIAgentController(
     {
         await stateStore.InitializeAsync();
         cancellationRegistry.Cancel(runId);
+        await RecordCancelledEventAsync(runId, request);
         await stateStore.CompleteRunAsync(runId, AgentRunStatus.Cancelled, $"{request.Source}:{request.Reason}");
         return Ok();
     }
@@ -200,7 +187,8 @@ public class AIAgentController(
     public async Task<AgentSessionTrace> GetSessionAsync(string threadId)
     {
         await stateStore.InitializeAsync();
-        return await stateStore.GetSessionTraceAsync(threadId);
+        AgentSessionTrace session = await stateStore.GetSessionTraceAsync(threadId);
+        return AgentRunStatusMapper.ToPublicSession(session);
     }
     /// <summary>
     /// 获取运行
@@ -209,7 +197,8 @@ public class AIAgentController(
     public async Task<AgentRunRecord> GetRunAsync(string runId)
     {
         await stateStore.InitializeAsync();
-        return await stateStore.GetRunAsync(runId);
+        AgentRunRecord run = await stateStore.GetRunAsync(runId);
+        return AgentRunStatusMapper.ToPublicRun(run);
     }
     /// <summary>
     /// 获取调试追踪列表
@@ -218,7 +207,8 @@ public class AIAgentController(
     public async Task<IReadOnlyList<AgentDebugTraceSummary>> GetDebugTracesAsync()
     {
         await stateStore.InitializeAsync();
-        return await stateStore.ListDebugTracesAsync();
+        IReadOnlyList<AgentDebugTraceSummary> traces = await stateStore.ListDebugTracesAsync();
+        return [.. traces.Select(AgentRunStatusMapper.ToPublicDebugTrace)];
     }
     /// <summary>
     /// 获取调试追踪
@@ -227,7 +217,8 @@ public class AIAgentController(
     public async Task<AgentRunTrace> GetDebugTraceAsync(string traceId)
     {
         await stateStore.InitializeAsync();
-        return await stateStore.GetRunTraceAsync(traceId);
+        AgentRunTrace trace = await stateStore.GetRunTraceAsync(traceId);
+        return AgentRunStatusMapper.ToPublicTrace(trace);
     }
     /// <summary>
     /// 获取Skill目录
@@ -253,6 +244,31 @@ public class AIAgentController(
         byte[] bytes = Encoding.UTF8.GetBytes(SseEventWriter.Format(streamEvent));
         await Response.Body.WriteAsync(bytes, HttpContext.RequestAborted);
         await Response.Body.FlushAsync(HttpContext.RequestAborted);
+    }
+    private IAsyncEnumerable<AIAgentRunOutput> WatchRuntime(IAsyncEnumerable<AIAgentRunOutput> source, CancellationToken cancellationToken)
+    {
+        AIAgentRuntimeWatchdog? watchdog = serviceProvider.GetService<AIAgentRuntimeWatchdog>();
+        return watchdog is null ? source : watchdog.WatchAsync(source, cancellationToken);
+    }
+    private async Task RecordCancelledEventAsync(string runId, CancelAgentRunRequest request)
+    {
+        string threadId = request.ThreadId;
+        int seq = 1;
+        try
+        {
+            AgentRunTrace trace = await stateStore.GetRunTraceAsync(runId);
+            if (string.IsNullOrWhiteSpace(threadId))
+            {
+                threadId = trace.Run.ThreadId;
+            }
+            seq = trace.Events.Count + 1;
+        }
+        catch (KeyNotFoundException)
+        {
+            threadId = string.IsNullOrWhiteSpace(threadId) ? string.Empty : threadId;
+        }
+        AgentStreamEvent streamEvent = streamAdapter.ToStreamEvent(threadId, runId, seq, AIAgentRunOutput.RunCancelled(request.Reason, request.Source));
+        await stateStore.RecordStreamEventAsync(streamEvent);
     }
     private async Task PersistRuntimeOutputAsync(AgentStreamEvent streamEvent, AIAgentRunOutput output)
     {
@@ -308,7 +324,7 @@ public class AIAgentController(
             ThreadId = streamEvent.ThreadId,
             RunId = streamEvent.RunId,
             Status = AIToolCallStatus.Requested,
-            Metadata = output.ToolArguments ?? new Dictionary<string, object?>()
+            Metadata = AgentTraceRedactor.Redact(output.ToolArguments ?? new Dictionary<string, object?>())
         });
     }
     private async Task AuditToolResultsAsync(RemoteToolResultsRequest request, AgentRunTrace trace)
@@ -324,7 +340,7 @@ public class AIAgentController(
                 ThreadId = request.ThreadId,
                 RunId = request.RunId,
                 Status = toolResult.Status,
-                Metadata = toolResult.Result ?? toolResult.Error ?? new Dictionary<string, object?>()
+                Metadata = AgentTraceRedactor.Redact(toolResult.Result ?? toolResult.Error ?? new Dictionary<string, object?>())
             });
         }
     }
@@ -334,15 +350,5 @@ public class AIAgentController(
         {
             await auditor.AuditAsync(context);
         }
-    }
-    private static AIAgentRemoteToolResult ToRuntimeToolResult(RemoteToolResultItem item)
-    {
-        return new AIAgentRemoteToolResult
-        {
-            ToolCallId = item.ToolCallId,
-            Status = item.Status,
-            Result = item.Result,
-            Error = item.Error
-        };
     }
 }

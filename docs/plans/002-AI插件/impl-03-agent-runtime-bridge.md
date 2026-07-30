@@ -1,4 +1,4 @@
-# Materal.MergeBlock.AI Agent Runtime Bridge 实施计划
+﻿# Materal.MergeBlock.AI Agent Runtime Bridge 实施计划
 
 > **面向代理执行者：** 必需子技能：按任务逐项实施本计划时，请使用 `superpowers:subagent-driven-development`（推荐）或 `superpowers:executing-plans`。步骤使用复选框（`- [ ]`）语法便于跟踪。
 
@@ -212,11 +212,11 @@ Runtime bridge 必须支持多轮 MAF tool calling。业务 runtime 收到工具
 
 - [ ] **步骤 2：实现 script review gate 接入点**
 
-`runWordScript` 等远程编辑工具发给前端前，允许业务注册 script review gate。审查通过时继续发出 `tool_call.requested`；审查拒绝时记录 `script_review.completed`，再输出 `tool_result.completed`，其中 `payload.status = "failed"`，让 Agent 重写脚本。
+`executeRemoteAction` 等远程执行工具发给前端前，允许业务注册 script review gate。审查通过时继续发出 `tool_call.requested`；审查拒绝时记录 `script_review.completed`，再输出 `tool_result.completed`，其中 `payload.status = "failed"`，让 Agent 重写请求。
 
 - [ ] **步骤 3：实现 skill catalog 和按需加载 runtime 输出**
 
-`GET /agent/skills` 返回轻量 catalog。`loadWordAgentSkill` 由业务 runtime 作为 server-executed、model-visible 工具处理，只允许读取已注册 skill 根目录内的 `SKILL.md` 和被引用的相对文本文件。加载事件必须进入 stream/debug trace。
+`GET /agent/skills` 返回轻量 catalog。`loadAgentSkill` 由业务 runtime 作为 server-executed、model-visible 工具处理，只允许读取已注册 skill 根目录内的 `SKILL.md` 和被引用的相对文本文件。加载事件必须进入 stream/debug trace。
 
 - [ ] **步骤 4：实现 runtime watchdog 输出**
 

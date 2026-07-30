@@ -10,7 +10,7 @@ public class LoggingAIToolCallAuditorTest
 
         await auditor.AuditAsync(new AIToolCallAuditContext
         {
-            ToolName = "runWordScript",
+            ToolName = "runClientAction",
             ExecutionMode = AIToolExecutionMode.Remote,
             ThreadId = "thread_001",
             RunId = "run_001",

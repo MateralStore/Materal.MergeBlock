@@ -23,6 +23,7 @@ public class AIAgentStreamAdapterTest
         Assert.AreEqual("tool_call.requested", toolCall.Event);
         Assert.AreEqual("call_001", toolCall.Payload["tool_call_id"]);
         Assert.AreEqual("run.paused", paused.Event);
+        Assert.AreEqual("tool_result_required", paused.Payload["reason"]);
         Assert.AreEqual("run.completed", completed.Event);
         Assert.AreEqual("error", error.Event);
         Assert.AreEqual("provider_error", error.Payload["code"]);

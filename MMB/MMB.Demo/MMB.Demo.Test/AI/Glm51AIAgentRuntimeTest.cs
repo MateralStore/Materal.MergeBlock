@@ -63,6 +63,35 @@ public class Glm51AIAgentRuntimeTest
     }
 
     [TestMethod]
+    public async Task RunAsync_ShouldStreamDeterministicBasicDemo_WhenApiKeyIsMissing()
+    {
+        Glm51AIAgentRuntime runtime = new(
+            Options.Create(new Glm51AIOptions { ApiKey = string.Empty }),
+            new RecordingAgentRunner());
+
+        List<AIAgentRunOutput> outputs = await CollectAsync(runtime.RunAsync(CreateRunRequest("demo-basic-chat")));
+
+        Assert.AreEqual(2, outputs.Count);
+        Assert.AreEqual(AIAgentRunOutputType.MessageDelta, outputs[0].Type);
+        Assert.AreEqual("Demo response", outputs[0].Text);
+        Assert.AreEqual(AIAgentRunOutputType.RunCompleted, outputs[1].Type);
+    }
+
+    [TestMethod]
+    public async Task RunAsync_ShouldStreamDeterministicSlowDemo_WhenApiKeyIsMissing()
+    {
+        Glm51AIAgentRuntime runtime = new(
+            Options.Create(new Glm51AIOptions { ApiKey = string.Empty }),
+            new RecordingAgentRunner());
+
+        List<AIAgentRunOutput> outputs = await CollectAsync(runtime.RunAsync(CreateRunRequest("slow-stream")));
+
+        Assert.IsTrue(outputs.Count >= 3);
+        Assert.IsTrue(outputs.Take(outputs.Count - 1).All(m => m.Type == AIAgentRunOutputType.MessageDelta));
+        Assert.AreEqual(AIAgentRunOutputType.RunCompleted, outputs[^1].Type);
+    }
+
+    [TestMethod]
     public async Task RunAsync_ShouldRequestRemoteTool_WhenTriggerIsPresent()
     {
         Glm51AIAgentRuntime runtime = new(
@@ -74,6 +103,9 @@ public class Glm51AIAgentRuntimeTest
         Assert.AreEqual(AIAgentRunOutputType.ToolCallRequested, outputs[0].Type);
         Assert.AreEqual("runClientAction", outputs[0].ToolName);
         Assert.AreEqual(AIAgentRunOutputType.RunPaused, outputs[1].Type);
+        Assert.AreEqual("tool_result_required", outputs[1].Reason);
+        Assert.IsNotNull(outputs[1].Metadata);
+        CollectionAssert.Contains(((IEnumerable<object>)outputs[1].Metadata!["tool_call_ids"]!).ToList(), outputs[0].ToolCallId);
     }
 
     [TestMethod]

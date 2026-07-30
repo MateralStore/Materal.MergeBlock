@@ -61,7 +61,6 @@ public class AIAgentControllerTest
             null!,
             null!,
             null!,
-            null!,
             [],
             serviceProvider);
 
@@ -69,9 +68,9 @@ public class AIAgentControllerTest
 
         Assert.AreEqual("agent-skill-catalog-v1", response.SchemaVersion);
         Assert.AreEqual(1, response.Skills.Count);
-        Assert.AreEqual("word-agent", response.Skills[0].Id);
-        Assert.AreEqual("Word Agent", response.Skills[0].Name);
-        Assert.AreEqual("Word automation skill", response.Skills[0].Description);
+        Assert.AreEqual("generic-agent", response.Skills[0].Id);
+        Assert.AreEqual("Generic Agent", response.Skills[0].Name);
+        Assert.AreEqual("Generic automation skill", response.Skills[0].Description);
     }
 
     private static string CombineRoute(string? controllerTemplate, string? actionTemplate)
@@ -87,9 +86,9 @@ public class AIAgentControllerTest
         [
             new AgentSkillCatalogItem
             {
-                Id = "word-agent",
-                Name = "Word Agent",
-                Description = "Word automation skill"
+                Id = "generic-agent",
+                Name = "Generic Agent",
+                Description = "Generic automation skill"
             }
         ];
     }

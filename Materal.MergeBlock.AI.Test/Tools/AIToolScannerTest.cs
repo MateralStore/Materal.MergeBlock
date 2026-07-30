@@ -11,7 +11,7 @@ public class AIToolScannerTest
         IReadOnlyList<AIToolDescriptor> descriptors = scanner.Scan(typeof(LocalOrderTool).Assembly);
 
         AIToolDescriptor local = descriptors.Single(m => m.Name == nameof(LocalOrderTool));
-        AIToolDescriptor remote = descriptors.Single(m => m.Name == "runWordScript");
+        AIToolDescriptor remote = descriptors.Single(m => m.Name == "runClientAction");
 
         Assert.AreEqual(AIToolExecutionMode.Local, local.ExecutionMode);
         Assert.AreEqual(AIToolExecutionMode.Remote, remote.ExecutionMode);
@@ -33,8 +33,8 @@ public class AIToolScannerTest
     [MergeBlockAITool("查询订单")]
     private sealed class LocalOrderTool;
 
-    [MergeBlockAITool("执行Word脚本", Name = "runWordScript", ExecutionMode = AIToolExecutionMode.Remote)]
-    private sealed class RemoteWordTool;
+    [MergeBlockAITool("执行客户端动作", Name = "runClientAction", ExecutionMode = AIToolExecutionMode.Remote)]
+    private sealed class RemoteClientTool;
 
     private sealed class MethodToolContainer
     {

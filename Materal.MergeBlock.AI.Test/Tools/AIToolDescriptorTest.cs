@@ -17,10 +17,10 @@ public class AIToolDescriptorTest
 
         AIToolDescriptor remote = new()
         {
-            Name = "runWordScript",
-            Description = "执行Word脚本",
+            Name = "runClientAction",
+            Description = "执行客户端动作",
             ExecutionMode = AIToolExecutionMode.Remote,
-            InputType = typeof(RunWordScriptInput),
+            InputType = typeof(RunClientActionInput),
             ResultType = typeof(Dictionary<string, object?>)
         };
 
@@ -30,5 +30,5 @@ public class AIToolDescriptorTest
 
     private sealed class QueryOrderInput;
     private sealed class QueryOrderResult;
-    private sealed class RunWordScriptInput;
+    private sealed class RunClientActionInput;
 }

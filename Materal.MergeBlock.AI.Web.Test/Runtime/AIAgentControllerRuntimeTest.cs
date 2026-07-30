@@ -63,6 +63,44 @@ public class AIAgentControllerRuntimeTest
     }
 
     [TestMethod]
+    public async Task StreamAsync_ShouldPassModelConfigToRuntime()
+    {
+        RecordingStateStore stateStore = new();
+        StubRuntime runtime = new([
+            AIAgentRunOutput.RunCompleted()
+        ]);
+        AIAgentController controller = CreateController(stateStore, runtime);
+
+        await controller.StreamAsync(new AgentChatRequest
+        {
+            ThreadId = "thread_001",
+            RunId = "run_001",
+            Message = "hi",
+            ModelConfig = new AIAgentModelConfig
+            {
+                Provider = "openai",
+                Model = "gpt-test",
+                ApiKey = "secret"
+            },
+            SkillRequest = new AIAgentSkillRequest
+            {
+                Name = "analysis",
+                Description = "Use analysis capability"
+            },
+            PreExecutionReview = new AIAgentPreExecutionReviewConfig
+            {
+                Enabled = true
+            }
+        });
+
+        Assert.IsNotNull(runtime.LastRunRequest);
+        Assert.AreEqual("openai", runtime.LastRunRequest.ModelConfig.Provider);
+        Assert.AreEqual("gpt-test", runtime.LastRunRequest.ModelConfig.Model);
+        Assert.AreEqual("analysis", runtime.LastRunRequest.SkillRequest!.Name);
+        Assert.IsTrue(runtime.LastRunRequest.PreExecutionReview.Enabled);
+    }
+
+    [TestMethod]
     public async Task StreamAsync_ShouldReturnError_WhenRuntimeIsMissing()
     {
         RecordingStateStore stateStore = new();
@@ -131,6 +169,76 @@ public class AIAgentControllerRuntimeTest
         CollectionAssert.Contains(stateStore.Audits.Select(m => m.Status).ToList(), AIToolCallStatus.Completed);
     }
 
+    [TestMethod]
+    public async Task QueryEndpoints_ShouldMapWaitingToolResultToPublicPaused()
+    {
+        RecordingStateStore stateStore = new()
+        {
+            Trace = new AgentRunTrace
+            {
+                Run = new AgentRunRecord
+                {
+                    RunId = "run_001",
+                    ThreadId = "thread_001",
+                    Status = AgentRunStatus.WaitingToolResult
+                }
+            }
+        };
+        AIAgentController controller = CreateController(stateStore, null);
+
+        AgentRunRecord run = await controller.GetRunAsync("run_001");
+        AgentSessionTrace session = await controller.GetSessionAsync("thread_001");
+        IReadOnlyList<AgentDebugTraceSummary> debugTraces = await controller.GetDebugTracesAsync();
+        AgentRunTrace debugTrace = await controller.GetDebugTraceAsync("run_001");
+
+        Assert.AreEqual(AgentRunStatus.Paused, run.Status);
+        Assert.AreEqual(AgentRunStatus.Paused, session.Runs[0].Status);
+        Assert.AreEqual(AgentRunStatus.Paused, debugTraces[0].Status);
+        Assert.AreEqual(AgentRunStatus.Paused, debugTrace.Run.Status);
+    }
+
+    [TestMethod]
+    public async Task CancelAsync_ShouldPersistCancelledEvent()
+    {
+        RecordingStateStore stateStore = new()
+        {
+            Trace = new AgentRunTrace
+            {
+                Run = new AgentRunRecord
+                {
+                    RunId = "run_001",
+                    ThreadId = "thread_001",
+                    Status = AgentRunStatus.Running
+                },
+                Events =
+                [
+                    new AgentStreamEvent
+                    {
+                        ThreadId = "thread_001",
+                        RunId = "run_001",
+                        Seq = 1,
+                        Event = "run.started",
+                        Payload = new Dictionary<string, object?>()
+                    }
+                ]
+            }
+        };
+        AIAgentController controller = CreateController(stateStore, null);
+
+        await controller.CancelAsync("run_001", new CancelAgentRunRequest
+        {
+            ThreadId = "thread_001",
+            Source = "test",
+            Reason = "user_requested"
+        });
+
+        AgentStreamEvent cancelledEvent = stateStore.Events.Single(m => m.Event == "run.cancelled");
+        Assert.AreEqual(2, cancelledEvent.Seq);
+        Assert.AreEqual("user_requested", cancelledEvent.Payload["reason"]);
+        Assert.AreEqual("test", cancelledEvent.Payload["source"]);
+        Assert.AreEqual(AgentRunStatus.Cancelled, stateStore.CompletedStatuses["run_001"]);
+    }
+
     private static AIAgentController CreateController(RecordingStateStore stateStore, IAIAgentRuntime? runtime)
     {
         ServiceCollection services = new();
@@ -145,8 +253,7 @@ public class AIAgentControllerRuntimeTest
             stateStore,
             new RemoteToolGateway(stateStore),
             new AIAgentCancellationRegistry(),
-            new AIContextBuilder(serviceProvider, []),
-            new AIPromptBuilder([]),
+            new AIAgentRuntimeRequestFactory(new AIContextBuilder(serviceProvider, []), new AIPromptBuilder([])),
             new AIAgentStreamAdapter(),
             serviceProvider.GetServices<IAIToolCallAuditor>(),
             serviceProvider);
@@ -172,8 +279,12 @@ public class AIAgentControllerRuntimeTest
 
     private sealed class StubRuntime(IReadOnlyList<AIAgentRunOutput> runOutputs, IReadOnlyList<AIAgentRunOutput>? resumeOutputs = null) : IAIAgentRuntime
     {
+        public AIAgentRunRequest? LastRunRequest { get; private set; }
+        public AIAgentResumeRequest? LastResumeRequest { get; private set; }
+
         public async IAsyncEnumerable<AIAgentRunOutput> RunAsync(AIAgentRunRequest request)
         {
+            LastRunRequest = request;
             foreach (AIAgentRunOutput output in runOutputs)
             {
                 yield return output;
@@ -183,6 +294,7 @@ public class AIAgentControllerRuntimeTest
 
         public async IAsyncEnumerable<AIAgentRunOutput> ResumeAsync(AIAgentResumeRequest request)
         {
+            LastResumeRequest = request;
             foreach (AIAgentRunOutput output in resumeOutputs ?? [])
             {
                 yield return output;

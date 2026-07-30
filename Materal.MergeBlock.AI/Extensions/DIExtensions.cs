@@ -13,6 +13,7 @@ public static class DIExtensions
     public static IServiceCollection AddMergeBlockAI(this IServiceCollection services)
     {
         services.AddSingleton<AIToolRegistry>();
+        services.AddSingleton<AIServerToolRegistry>();
         services.AddSingleton<AIToolScanner>();
         services.AddSingleton<AIContextBuilder>();
         services.AddSingleton<AIPromptBuilder>();

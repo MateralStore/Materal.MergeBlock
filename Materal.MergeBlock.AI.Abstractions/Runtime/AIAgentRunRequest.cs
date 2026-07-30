@@ -18,6 +18,18 @@ public class AIAgentRunRequest
     /// </summary>
     public string Message { get; init; } = string.Empty;
     /// <summary>
+    /// 模型配置
+    /// </summary>
+    public AIAgentModelConfig ModelConfig { get; init; } = new();
+    /// <summary>
+    /// 能力请求
+    /// </summary>
+    public AIAgentSkillRequest? SkillRequest { get; init; }
+    /// <summary>
+    /// 执行前审查配置
+    /// </summary>
+    public AIAgentPreExecutionReviewConfig PreExecutionReview { get; init; } = new();
+    /// <summary>
     /// AI上下文
     /// </summary>
     public IReadOnlyAIContext AIContext { get; init; } = default!;

@@ -14,6 +14,9 @@ public class AIWebModule() : MergeBlockModule("AI Web模块")
         context.Services.AddSingleton<RemoteToolGateway>();
         context.Services.AddSingleton<AIAgentCancellationRegistry>();
         context.Services.AddSingleton<AIAgentStreamAdapter>();
+        context.Services.AddSingleton<AIAgentRuntimeRequestFactory>();
+        context.Services.TryAddSingleton(new AIAgentWatchdogOptions());
+        context.Services.AddSingleton<AIAgentRuntimeWatchdog>();
         context.Services.TryAddSingleton<IAIAgentStateStore>(_ => new SqliteAIAgentStateStore("data/ai-agent.sqlite3"));
         base.OnConfigureServices(context);
     }

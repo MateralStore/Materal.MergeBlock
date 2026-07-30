@@ -26,6 +26,10 @@ public class AgentRunTrace
     /// </summary>
     public IReadOnlyList<ScriptReviewResult> ScriptReviews { get; init; } = [];
     /// <summary>
+    /// 时间线
+    /// </summary>
+    public IReadOnlyList<AgentTimelineItem> Timeline { get; init; } = [];
+    /// <summary>
     /// 检查点
     /// </summary>
     public AgentCheckpointRecord? Checkpoint { get; init; }

@@ -50,6 +50,10 @@ public enum AIAgentRunOutputType
     /// </summary>
     RunPaused,
     /// <summary>
+    /// 运行取消
+    /// </summary>
+    RunCancelled,
+    /// <summary>
     /// 运行完成
     /// </summary>
     RunCompleted,

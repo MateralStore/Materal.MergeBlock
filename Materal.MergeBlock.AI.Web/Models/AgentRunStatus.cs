@@ -14,6 +14,10 @@ public static class AgentRunStatus
     /// </summary>
     public const string WaitingToolResult = "waiting_tool_result";
     /// <summary>
+    /// 已暂停
+    /// </summary>
+    public const string Paused = "paused";
+    /// <summary>
     /// 已完成
     /// </summary>
     public const string Completed = "completed";

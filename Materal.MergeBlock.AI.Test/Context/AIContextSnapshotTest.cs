@@ -8,15 +8,15 @@ public class AIContextSnapshotTest
     {
         Dictionary<string, object?> source = new()
         {
-            ["permissions"] = new[] { "word.read" }
+            ["permissions"] = new[] { "content.read" }
         };
 
         AIContextSnapshot snapshot = new(source);
-        source["permissions"] = new[] { "word.edit" };
+        source["permissions"] = new[] { "content.edit" };
 
         string[] permissions = snapshot.GetRequired<string[]>("permissions");
 
-        CollectionAssert.AreEqual(new[] { "word.read" }, permissions);
+        CollectionAssert.AreEqual(new[] { "content.read" }, permissions);
     }
 
     [TestMethod]

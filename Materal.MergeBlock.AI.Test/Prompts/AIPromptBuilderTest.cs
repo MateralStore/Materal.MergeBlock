@@ -11,14 +11,14 @@ public class AIPromptBuilderTest
         ServiceProvider provider = services.BuildServiceProvider();
         AIContextSnapshot context = new(new Dictionary<string, object?>
         {
-            ["permissions"] = new[] { "word.read" }
+            ["permissions"] = new[] { "content.read" }
         });
 
         AIPromptBuilder builder = new(provider.GetServices<IAIPromptContributor>());
         IReadOnlyList<string> messages = await builder.BuildSystemMessagesAsync(context);
 
         Assert.AreEqual(1, messages.Count);
-        StringAssert.Contains(messages[0], "只能读取文档");
+        StringAssert.Contains(messages[0], "只能读取内容");
     }
 
     private sealed class PermissionPromptContributor : IAIPromptContributor
@@ -26,9 +26,9 @@ public class AIPromptBuilderTest
         public Task ContributeAsync(AIPromptContributionContext context)
         {
             string[] permissions = context.AIContext.GetRequired<string[]>("permissions");
-            if (!permissions.Contains("word.edit"))
+            if (!permissions.Contains("content.edit"))
             {
-                context.AddSystemMessage("当前用户只能读取文档，不能修改文档。");
+                context.AddSystemMessage("当前用户只能读取内容，不能修改内容。");
             }
             return Task.CompletedTask;
         }

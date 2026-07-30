@@ -8,22 +8,41 @@ namespace MMB.Demo.Application.AI;
 /// </summary>
 public class Glm51AIAgentRuntime(IOptions<Glm51AIOptions> options, IGlm51AgentRunner agentRunner) : IAIAgentRuntime
 {
+    private const string BasicDemoTrigger = "demo-basic-chat";
     private const string RemoteToolTrigger = "use-remote-tool";
+    private const string SlowStreamTrigger = "slow-stream";
 
     /// <inheritdoc />
     public async IAsyncEnumerable<AIAgentRunOutput> RunAsync(AIAgentRunRequest request)
     {
+        if (request.Message.Contains(BasicDemoTrigger, StringComparison.OrdinalIgnoreCase))
+        {
+            yield return AIAgentRunOutput.MessageDelta("Demo response");
+            yield return AIAgentRunOutput.RunCompleted();
+            yield break;
+        }
+        if (request.Message.Contains(SlowStreamTrigger, StringComparison.OrdinalIgnoreCase))
+        {
+            foreach (string delta in new[] { "Slow ", "stream ", "demo ", "is ", "still ", "running", ".", "\n" })
+            {
+                await Task.Delay(250, request.CancellationToken);
+                yield return AIAgentRunOutput.MessageDelta(delta);
+            }
+            yield return AIAgentRunOutput.RunCompleted();
+            yield break;
+        }
         if (request.Message.Contains(RemoteToolTrigger, StringComparison.OrdinalIgnoreCase))
         {
+            string toolCallId = Guid.NewGuid().ToString("N");
             yield return AIAgentRunOutput.ToolCallRequested(
-                Guid.NewGuid().ToString("N"),
+                toolCallId,
                 "runClientAction",
                 new Dictionary<string, object?>
                 {
                     ["action"] = "demo",
                     ["message"] = request.Message
                 });
-            yield return AIAgentRunOutput.RunPaused();
+            yield return AIAgentRunOutput.RunPaused(toolCallIds: [toolCallId]);
             yield break;
         }
         Glm51AIOptions currentOptions = options.Value;

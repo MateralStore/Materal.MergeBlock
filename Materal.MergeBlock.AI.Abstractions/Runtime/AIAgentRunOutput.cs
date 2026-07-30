@@ -115,13 +115,19 @@ public class AIAgentRunOutput
     /// <summary>
     /// 创建脚本审查完成
     /// </summary>
-    public static AIAgentRunOutput ScriptReviewCompleted(string toolCallId, bool approved, string reason, string? riskLevel = null) => new()
+    public static AIAgentRunOutput ScriptReviewCompleted(
+        string toolCallId,
+        bool approved,
+        string reason,
+        string? riskLevel = null,
+        IReadOnlyDictionary<string, object?>? metadata = null) => new()
     {
         Type = AIAgentRunOutputType.ScriptReviewCompleted,
         ToolCallId = toolCallId,
         Approved = approved,
         Reason = reason,
-        RiskLevel = riskLevel
+        RiskLevel = riskLevel,
+        Metadata = metadata
     };
     /// <summary>
     /// 创建心跳
@@ -155,9 +161,28 @@ public class AIAgentRunOutput
     /// <summary>
     /// 创建运行暂停
     /// </summary>
-    public static AIAgentRunOutput RunPaused() => new()
+    public static AIAgentRunOutput RunPaused(string reason = "tool_result_required", IReadOnlyList<string>? toolCallIds = null) => new()
     {
-        Type = AIAgentRunOutputType.RunPaused
+        Type = AIAgentRunOutputType.RunPaused,
+        Reason = reason,
+        Metadata = toolCallIds is { Count: > 0 }
+            ? new Dictionary<string, object?>
+            {
+                ["tool_call_ids"] = toolCallIds
+            }
+            : null
+    };
+    /// <summary>
+    /// 创建运行取消
+    /// </summary>
+    public static AIAgentRunOutput RunCancelled(string reason = "user_requested", string source = "agent_chat_ui") => new()
+    {
+        Type = AIAgentRunOutputType.RunCancelled,
+        Reason = reason,
+        Metadata = new Dictionary<string, object?>
+        {
+            ["source"] = source
+        }
     };
     /// <summary>
     /// 创建运行完成
