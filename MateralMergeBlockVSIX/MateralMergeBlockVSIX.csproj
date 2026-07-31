@@ -55,7 +55,7 @@
     <Compile Include="Helper\CommandHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MateralMergeBlockVSIXPackage.cs" />
-    <Compile Include="source.extension.cs">
+    <Compile Include="source.extension.cs" Condition="'$(Configuration)' != 'Release'">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>

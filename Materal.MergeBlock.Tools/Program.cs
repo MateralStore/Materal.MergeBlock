@@ -15,18 +15,17 @@ public class Program
         //await GeneratorCodeAsync(@"E:\Project\Materal\Materal\Materal.MergeBlock\MMB\MMB.Demo");
         await GeneratorCodeAsync(@"E:\Project\GDB\XMJ\Server\XMJ\XMJ.Authority");
 #endif
-        Option<string> pathOption = new("--ModulePath", "指定模块路径");
-        pathOption.AddAlias("-m");
-        pathOption.IsRequired = false;
+        Option<string?> pathOption = new("--ModulePath") { Description = "指定模块路径" };
+        pathOption.Aliases.Add("-m");
 
-        Command generatorCodeCommand = new("GeneratorCode", "生成代码");
-        generatorCodeCommand.AddOption(pathOption);
-        generatorCodeCommand.SetHandler(GeneratorCodeAsync, pathOption);
+        Command generatorCodeCommand = new("GeneratorCode") { Description = "生成代码" };
+        generatorCodeCommand.Options.Add(pathOption);
+        generatorCodeCommand.SetAction(parseResult => GeneratorCodeAsync(parseResult.GetValue(pathOption)));
 
         RootCommand rootCommand = new("Materal.MergeBlock.Tools");
-        rootCommand.AddCommand(generatorCodeCommand);
+        rootCommand.Subcommands.Add(generatorCodeCommand);
 
-        return await rootCommand.InvokeAsync(args);
+        return await rootCommand.Parse(args).InvokeAsync();
     }
 
     private static async Task GeneratorCodeAsync(string? projectPath)
